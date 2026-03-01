@@ -618,8 +618,13 @@ set(wxWidgets_USE_LIBS
     html
     adv
     aui
-    webview
 )
+
+# webview only if not FLATPAK or LINUX
+if ((WIN32 OR APPLE) AND NOT OCPN_FLATPAK_BUILD)
+  list(APPEND wxWidgets_USE_LIBS webview)
+  message(STATUS "Adding wxWebView to wxWidgets components")
+endif()
 
 # Search for opengles, short of running a program to test the speed of
 # acceleration, I simply use gles on "native linux" arm systems

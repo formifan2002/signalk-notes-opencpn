@@ -444,8 +444,11 @@ void tpSignalKNotesManager::OnIconClick(
   // ============================================================
 #if defined(__WXMSW__) || defined(__WXMAC__)
   // Windows & macOS: wxWebView (beste Unterstützung)
-  RenderWithWebView(dlg, sizer, htmlContent);
-
+  if (!RenderWithWebView(dlg, sizer, htmlContent)) {
+    SKN_LOG(m_parent,
+            "wxWebView not available on this system, using wxHtmlWindow");
+    RenderWithHtmlWindow(dlg, sizer, htmlContent);
+  }
 #elif defined(__OCPN__ANDROID__)
   // Android: wxHtmlWindow (wxWebView begrenzt)
   RenderWithHtmlWindow(dlg, sizer, htmlContent);

@@ -618,6 +618,7 @@ set(wxWidgets_USE_LIBS
     html
     adv
     aui
+    webview
 )
 
 # Search for opengles, short of running a program to test the speed of

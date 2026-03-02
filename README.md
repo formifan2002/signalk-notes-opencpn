@@ -11,7 +11,7 @@ Several SignalK plugins (like ['Garmin Active Captain Resources'](https://active
 <img src="docs/images/map1.png" width="75%"  style="margin-bottom: 8px;">
 <img src="docs/images/map-detail1.png" width="75%">
 
-## Features
+## Features 
 
 ### • Display SignalK Notes on the Chart
 The plugin reads notes from SignalK and displays them as icons at their respective positions on the map.

@@ -12,14 +12,15 @@ docker run --rm \
 
     apt-get update &&
     apt-get install -y \
-      cmake g++ make git \
+      cmake g++ make git pkg-config \
       libwxgtk3.2-dev wx-common \
+      libgtk-3-dev \
+      gettext \
       libglu1-mesa-dev freeglut3-dev mesa-common-dev \
       libcurl4-openssl-dev \
       libtinyxml2-dev \
       libarchive-dev \
-      zlib1g-dev \
-      pkg-config
+      zlib1g-dev
 
     echo '=== Cloning OpenCPN Plugin SDK ==='
     git clone --depth=1 https://github.com/OpenCPN/OpenCPN.git /tmp/opencpn
@@ -28,11 +29,12 @@ docker run --rm \
     cd build &&
     cmake \
       -DOCPN_PLUGIN=ON \
-      -DwxWidgets_CONFIG_EXECUTABLE=/usr/bin/wx-config \
       -DOCPN_SDK_PATH=/tmp/opencpn \
+      -DwxWidgets_CONFIG_EXECUTABLE=/usr/bin/wx-config \
       -DCMAKE_BUILD_TYPE=Release \
       .. &&
     make -j\$(nproc)
   "
 
 echo "=== Build finished ==="
+

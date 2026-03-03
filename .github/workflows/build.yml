@@ -579,29 +579,3 @@ jobs:
 
       - name: Deploy to Cloudsmith
         uses: ./.github/actions/deploy-cloudsmith
-
-  build-ubuntu-x86_64-2404-noble:
-    if: ${{ !vars.BUILD_CONFIG || fromJson(vars.BUILD_CONFIG).BUILD_UBUNTU_X86_64_2404_NOBLE != false }}
-    runs-on: ubuntu-latest
-    env:
-      BUILD_GTK3: true
-      OCPN_TARGET: noble
-      WX_VER: 32
-      BUILD_ENV: ubuntu
-      CLOUDSMITH_API_KEY: ${{ secrets.CLOUDSMITH_API_KEY }}
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      DOCKER_IMAGE: ubuntu:24.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build Ubuntu Noble x86_64
-        run: |
-          chmod a+x github/*.sh
-          github/github-build-ubuntu-noble.sh
-
-      - name: Deploy to Cloudsmith
-        uses: ./.github/actions/deploy-cloudsmith
-

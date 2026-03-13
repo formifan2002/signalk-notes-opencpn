@@ -163,10 +163,7 @@ wxString signalk_notes_opencpn_pi::GetLongDescription() {
   return _(PLUGIN_LONG_DESCRIPTION);
 }
 
-// -----------------------------------------------------------------------------
 // Init / DeInit
-// -----------------------------------------------------------------------------
-
 int signalk_notes_opencpn_pi::Init(void) {
   AddLocaleCatalog(PLUGIN_CATALOG_NAME);
       // wxMessageBox("Attach debugger now! PID: " + wxString::Format("%d",

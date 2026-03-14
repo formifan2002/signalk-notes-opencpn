@@ -145,7 +145,7 @@ jobs:
 
       - name: Build MSVC
         shell: cmd
-        run: ci\circleci-build-msvc.bat
+        run: github\github-build-msvc.bat
 
       - name: Deploy to Cloudsmith
         uses: ./.github/actions/deploy-cloudsmith

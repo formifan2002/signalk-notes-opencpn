@@ -11,7 +11,8 @@
 ::          build using 3.1
 :: Output:
 ::     cache\wx-config.bat:
-::          Script which set wxWidgets_LIB_DIR and wxWidgets_ROOT_DIR
+::          Script which sets wxWidgets_LIB_DIR, wxWidgets_ROOT_DIR,
+::          GETTEXT_MSGMERGE_EXECUTABLE and GETTEXT_MSGFMT_EXECUTABLE
 ::
 :: Initial run will do choco installs requiring administrative
 :: privileges.
@@ -19,18 +20,18 @@
 :: NOTE: at the very end, this script runs refreshenv. This clears the
 :: process's PATH and replaces it with a fresh copy from the
 :: registry. This means that any "set PATH=..." is lost for caller.
-
-:: Install the pathman tool: https://github.com/therootcompany/pathman
-:: Fix PATH so it can be used in this script
-::
+:: Gettext paths are persisted via CONFIG_FILE and GITHUB_ENV instead.
 
 @echo off
 echo In win_deps
 
 setlocal enabledelayedexpansion
 
-if not exist %SCRIPTDIR%\..\cache ( mkdir %SCRIPTDIR%\..\cache )
-set "CONFIG_FILE=%SCRIPTDIR%\..\cache\wx-config.bat"
+:: FIX: SCRIPTDIR must be set first — it is used throughout this script.
+set SCRIPTDIR=%~dp0
+
+if not exist "%SCRIPTDIR%..\cache" ( mkdir "%SCRIPTDIR%..\cache" )
+set "CONFIG_FILE=%SCRIPTDIR%..\cache\wx-config.bat"
 set EXTRA_PATH=
 
 git --version > nul 2>&1
@@ -39,6 +40,7 @@ if errorlevel 1 (
    if not exist "!GIT_HOME!" choco install -y git
 )
 echo done git
+
 :: Install choco cmake and add it's persistent user path element
 ::
 cmake --version > nul 2>&1
@@ -77,14 +79,15 @@ choco install -y --no-progress gettext
 set "PATH=C:\ProgramData\chocolatey\lib\gettext\tools\bin;%PATH%"
 if defined GITHUB_PATH echo C:\ProgramData\chocolatey\lib\gettext\tools\bin>> %GITHUB_PATH%
 
-set GETTEXT_MSGMERGE_EXECUTABLE=%POEDIT_HOME%\bin\msgmerge.exe
-set GETTEXT_MSGFMT_EXECUTABLE=%POEDIT_HOME%\bin\msgfmt.exe
+:: Resolve gettext executables — prefer choco gettext over poedit fallback
+set "GETTEXT_MSGMERGE_EXECUTABLE=%POEDIT_HOME%\bin\msgmerge.exe"
+set "GETTEXT_MSGFMT_EXECUTABLE=%POEDIT_HOME%\bin\msgfmt.exe"
 
 if exist "C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgmerge.exe" (
-    set GETTEXT_MSGMERGE_EXECUTABLE=C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgmerge.exe
+    set "GETTEXT_MSGMERGE_EXECUTABLE=C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgmerge.exe"
 )
 if exist "C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgfmt.exe" (
-    set GETTEXT_MSGFMT_EXECUTABLE=C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgfmt.exe
+    set "GETTEXT_MSGFMT_EXECUTABLE=C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgfmt.exe"
 )
 
 where msgmerge.exe
@@ -92,6 +95,14 @@ where msgfmt.exe
 
 echo Using msgmerge: %GETTEXT_MSGMERGE_EXECUTABLE%
 echo Using msgfmt:   %GETTEXT_MSGFMT_EXECUTABLE%
+
+:: FIX: Export gettext vars to GitHub Actions environment.
+:: setlocal prevents these from reaching the caller process, so we write
+:: them to GITHUB_ENV (GitHub Actions) and to CONFIG_FILE (CircleCI / local).
+if defined GITHUB_ENV (
+    echo GETTEXT_MSGMERGE_EXECUTABLE=%GETTEXT_MSGMERGE_EXECUTABLE%>> %GITHUB_ENV%
+    echo GETTEXT_MSGFMT_EXECUTABLE=%GETTEXT_MSGFMT_EXECUTABLE%>> %GITHUB_ENV%
+)
 
 :: Update required python stuff
 ::
@@ -107,7 +118,6 @@ python -m pip install -q cryptography
 
 :: Install pre-compiled wxWidgets and other DLL; add required paths.
 ::
-set SCRIPTDIR=%~dp0
 if "%~1"=="wx32" (
   set "WXWIN=%SCRIPTDIR%..\cache\wxWidgets-3.2.1"
   set "wxWidgets_ROOT_DIR=!WXWIN!"
@@ -120,30 +130,33 @@ if "%~1"=="wx32" (
   set "TARGET_TUPLE=msvc"
 )
 
-:: Add settings to CONFIG_FILE to allow them to be set in the calling batch file
-echo set "EXTRA_PATH=%EXTRA_PATH%" > %CONFIG_FILE%
-echo set "wxWidgets_ROOT_DIR=%wxWidgets_ROOT_DIR%" >> %CONFIG_FILE%
-echo set "wxWidgets_LIB_DIR=%wxWidgets_LIB_DIR%" >> %CONFIG_FILE%
-echo set "TARGET_TUPLE=%TARGET_TUPLE%" >> %CONFIG_FILE%
+:: Add settings to CONFIG_FILE to allow them to be set in the calling batch file.
+:: Also includes gettext paths so CircleCI / local builds can source them.
+echo set "EXTRA_PATH=%EXTRA_PATH%" > "%CONFIG_FILE%"
+echo set "wxWidgets_ROOT_DIR=%wxWidgets_ROOT_DIR%" >> "%CONFIG_FILE%"
+echo set "wxWidgets_LIB_DIR=%wxWidgets_LIB_DIR%" >> "%CONFIG_FILE%"
+echo set "TARGET_TUPLE=%TARGET_TUPLE%" >> "%CONFIG_FILE%"
+echo set "GETTEXT_MSGMERGE_EXECUTABLE=%GETTEXT_MSGMERGE_EXECUTABLE%" >> "%CONFIG_FILE%"
+echo set "GETTEXT_MSGFMT_EXECUTABLE=%GETTEXT_MSGFMT_EXECUTABLE%" >> "%CONFIG_FILE%"
 
 if not exist "%WXWIN%" (
   wget --version > nul 2>&1 || choco install -y wget
-  if  "%~1"=="wx32" (
+  if "%~1"=="wx32" (
       echo Downloading 3.2.1
-      if not exist  %SCRIPTDIR%..\cache\wxWidgets-3.2.1 (
-          mkdir %SCRIPTDIR%..\cache\wxWidgets-3.2.1
+      if not exist "%SCRIPTDIR%..\cache\wxWidgets-3.2.1" (
+          mkdir "%SCRIPTDIR%..\cache\wxWidgets-3.2.1"
       )
       set "GITHUB_DL=https://github.com/wxWidgets/wxWidgets/releases/download"
       wget -nv --no-check-certificate !GITHUB_DL!/v3.2.1/wxMSW-3.2.1_vc14x_Dev.7z
-      7z x -o%SCRIPTDIR%..\cache\wxWidgets-3.2.1 wxMSW-3.2.1_vc14x_Dev.7z
+      7z x -o"%SCRIPTDIR%..\cache\wxWidgets-3.2.1" wxMSW-3.2.1_vc14x_Dev.7z
       wget -nv --no-check-certificate !GITHUB_DL!/v3.2.1/wxWidgets-3.2.1-headers.7z
-      7z x -o%SCRIPTDIR%..\cache\wxWidgets-3.2.1 wxWidgets-3.2.1-headers.7z
+      7z x -o"%SCRIPTDIR%..\cache\wxWidgets-3.2.1" wxWidgets-3.2.1-headers.7z
   ) else (
       echo Downloading 3.1.2
       wget -O wxWidgets-3.1.2.7z -nv --no-check-certificate ^
         https://download.opencpn.org/s/E2p4nLDzeqx4SdX/download
       7z i > nul 2>&1 || choco install -y 7zip
-      7z x wxWidgets-3.1.2.7z -o%WXWIN%
+      7z x wxWidgets-3.1.2.7z -o"%WXWIN%"
   )
 )
 dir cache

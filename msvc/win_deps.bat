@@ -50,10 +50,28 @@ if errorlevel 1 (
 
 :: Install choco poedit and add it's persistent user path element
 ::
-set "POEDIT_HOME=C:\Program Files (x86)\Poedit\GettextTools"
-if not exist "%POEDIT_HOME%" (choco install -y poedit)
-dir "%POEDIT_HOME%"
-set "EXTRA_PATH=%POEDIT_HOME%\bin;%EXTRA_PATH%"
+set "POEDIT_HOME="
+if exist "C:\Program Files\Poedit\GettextTools\bin" (
+    set "POEDIT_HOME=C:\Program Files\Poedit\GettextTools"
+) else if exist "C:\Program Files (x86)\Poedit\GettextTools\bin" (
+    set "POEDIT_HOME=C:\Program Files (x86)\Poedit\GettextTools"
+)
+if not defined POEDIT_HOME (
+    echo Poedit not found, installing...
+    choco install -y --no-progress poedit
+    if exist "C:\Program Files\Poedit\GettextTools\bin" (
+        set "POEDIT_HOME=C:\Program Files\Poedit\GettextTools"
+    ) else if exist "C:\Program Files (x86)\Poedit\GettextTools\bin" (
+        set "POEDIT_HOME=C:\Program Files (x86)\Poedit\GettextTools"
+    )
+)
+if not defined POEDIT_HOME (
+    echo ERROR: Poedit GettextTools not found even after installation!
+    exit /b 1
+)
+echo Found Poedit GettextTools at %POEDIT_HOME%
+dir "%POEDIT_HOME%\bin"
+set "PATH=%POEDIT_HOME%\bin;%PATH%"
 
 :: Update required python stuff
 ::

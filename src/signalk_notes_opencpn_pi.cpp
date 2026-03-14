@@ -4,7 +4,7 @@
  * Author:    Dirk Behrendt
  * Copyright: Copyright (c) 2026 Dirk Behrendt
  * Licence:   GPLv2
- * 
+ *
  * Icon Licensing:
  *   - Some icons are derived from freeboard-sk (Apache License 2.0)
  *   - Some icons are based on OpenCPN standard icons (GPLv2)
@@ -426,7 +426,7 @@ bool signalk_notes_opencpn_pi::DoRenderGLOverlay(wxGLContext* pcontext,
                                                  int priority) {
 #ifdef __OCPN__ANDROID__
   return false;
-#endif
+#else
   if (priority > 0 || !m_pSignalKNotesManager) return false;
   PruneCanvasStates(canvasIndex);
   if (!DoRenderCommon(vp, canvasIndex, priority)) return false;
@@ -463,6 +463,7 @@ bool signalk_notes_opencpn_pi::DoRenderGLOverlay(wxGLContext* pcontext,
   }
 
   return drewSomething;
+#endif
 }
 
 bool signalk_notes_opencpn_pi::KeyboardEventHook(wxKeyEvent& event) {
@@ -1397,14 +1398,13 @@ void signalk_notes_opencpn_pi::PruneCanvasStates(int canvasIndex) {
 }
 
 bool signalk_notes_opencpn_pi::ViewPortsDiffer(const PlugIn_ViewPort& a,
-                                               const PlugIn_ViewPort& b)
-{
-    return a.clat != b.clat || a.clon != b.clon ||
-           a.view_scale_ppm != b.view_scale_ppm || a.skew != b.skew ||
-           a.rotation != b.rotation || a.chart_scale != b.chart_scale ||
-           a.pix_width != b.pix_width || a.pix_height != b.pix_height ||
-           a.rv_rect != b.rv_rect || a.b_quilt != b.b_quilt ||
-           a.m_projection_type != b.m_projection_type || a.lat_min != b.lat_min ||
-           a.lat_max != b.lat_max || a.lon_min != b.lon_min ||
-           a.lon_max != b.lon_max || a.bValid != b.bValid;
+                                               const PlugIn_ViewPort& b) {
+  return a.clat != b.clat || a.clon != b.clon ||
+         a.view_scale_ppm != b.view_scale_ppm || a.skew != b.skew ||
+         a.rotation != b.rotation || a.chart_scale != b.chart_scale ||
+         a.pix_width != b.pix_width || a.pix_height != b.pix_height ||
+         a.rv_rect != b.rv_rect || a.b_quilt != b.b_quilt ||
+         a.m_projection_type != b.m_projection_type || a.lat_min != b.lat_min ||
+         a.lat_max != b.lat_max || a.lon_min != b.lon_min ||
+         a.lon_max != b.lon_max || a.bValid != b.bValid;
 }

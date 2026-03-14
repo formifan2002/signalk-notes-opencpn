@@ -112,6 +112,7 @@ cmake -DCMAKE_TOOLCHAIN_FILE=cmake/android-aarch64-toolchain.cmake \
   -DQt_Build=build_arm64/qtbase \
   -DOCPN_Android_Common=OCPNAndroidCommon-master \
   -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+  -DCMAKE_CXX_FLAGS="-Wno-inconsistent-missing-override -Wno-unused-parameter -Wno-deprecated-declarations" \
   ..
 
 make VERBOSE=1

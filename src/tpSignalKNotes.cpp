@@ -404,7 +404,7 @@ void tpSignalKNotesManager::OnIconClick(
   // Platform-spezifische Rendering
 #if defined(__WXMSW__) || defined(__WXMAC__)
   // Windows & macOS: wxWebView (beste Unterstützung)
-  if (!RenderWithWebView(dlg, sizer, htmlContent)) {w
+  if (!RenderWithWebView(dlg, sizer, htmlContent)) {
     SKN_LOG(m_parent,
             "wxWebView not available on this system, using wxHtmlWindow");
     RenderWithHtmlWindow(dlg, sizer, htmlContent);

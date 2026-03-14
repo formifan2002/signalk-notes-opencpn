@@ -50,7 +50,9 @@ if errorlevel 1 (
 
 :: Install choco poedit and add it's persistent user path element
 ::
+echo === Detecting Poedit and Gettext ===
 set "POEDIT_HOME="
+
 if exist "C:\Program Files\Poedit\GettextTools\bin" (
     set "POEDIT_HOME=C:\Program Files\Poedit\GettextTools"
 ) else if exist "C:\Program Files (x86)\Poedit\GettextTools\bin" (
@@ -59,6 +61,7 @@ if exist "C:\Program Files\Poedit\GettextTools\bin" (
 if not defined POEDIT_HOME (
     echo Poedit not found, installing...
     choco install -y --no-progress poedit
+
     if exist "C:\Program Files\Poedit\GettextTools\bin" (
         set "POEDIT_HOME=C:\Program Files\Poedit\GettextTools"
     ) else if exist "C:\Program Files (x86)\Poedit\GettextTools\bin" (
@@ -72,9 +75,12 @@ if not defined POEDIT_HOME (
 echo Found Poedit GettextTools at %POEDIT_HOME%
 dir "%POEDIT_HOME%\bin"
 set "PATH=%POEDIT_HOME%\bin;%PATH%"
-
-:: Update required python stuff
-::
+echo Installing GNU Gettext for CMake compatibility...
+choco install -y --no-progress gettext
+set "PATH=C:\ProgramData\chocolatey\lib\gettext\tools\bin;%PATH%"
+where msgmerge.exe
+where msgfmt.exe
+echo === Gettext setup complete ===
 echo doing python
 python --version > nul 2>&1 && python -m ensurepip > nul 2>&1
 if errorlevel 1 choco install -y python

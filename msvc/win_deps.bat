@@ -67,9 +67,7 @@ if not defined POEDIT_HOME (
     )
 )
 
-if not defined POEDIT_HOME (
-    exit /b 1
-)
+if not defined POEDIT_HOME exit /b 1
 
 set "PATH=%POEDIT_HOME%\bin;%PATH%"
 if defined GITHUB_PATH echo %POEDIT_HOME%\bin>> %GITHUB_PATH%
@@ -79,8 +77,21 @@ choco install -y --no-progress gettext
 set "PATH=C:\ProgramData\chocolatey\lib\gettext\tools\bin;%PATH%"
 if defined GITHUB_PATH echo C:\ProgramData\chocolatey\lib\gettext\tools\bin>> %GITHUB_PATH%
 
+set GETTEXT_MSGMERGE_EXECUTABLE=%POEDIT_HOME%\bin\msgmerge.exe
+set GETTEXT_MSGFMT_EXECUTABLE=%POEDIT_HOME%\bin\msgfmt.exe
+
+if exist "C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgmerge.exe" (
+    set GETTEXT_MSGMERGE_EXECUTABLE=C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgmerge.exe
+)
+if exist "C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgfmt.exe" (
+    set GETTEXT_MSGFMT_EXECUTABLE=C:\ProgramData\chocolatey\lib\gettext\tools\bin\msgfmt.exe
+)
+
 where msgmerge.exe
 where msgfmt.exe
+
+echo Using msgmerge: %GETTEXT_MSGMERGE_EXECUTABLE%
+echo Using msgfmt:   %GETTEXT_MSGFMT_EXECUTABLE%
 
 :: Update required python stuff
 ::

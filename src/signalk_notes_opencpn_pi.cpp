@@ -4,7 +4,7 @@
  * Author:    Dirk Behrendt
  * Copyright: Copyright (c) 2026 Dirk Behrendt
  * Licence:   GPLv2
- *
+ * 
  * Icon Licensing:
  *   - Some icons are derived from freeboard-sk (Apache License 2.0)
  *   - Some icons are based on OpenCPN standard icons (GPLv2)

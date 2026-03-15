@@ -313,7 +313,10 @@ if type nproc &> /dev/null; then
 else
     BUILD_FLAGS="-j1"
 fi
-
+EXTRA_CMAKE_FLAGS=""
+if [[ "$OCPN_TARGET" == *"trixie"* ]] && [[ "$OCPN_TARGET" == *"arm64"* ]]; then
+    EXTRA_CMAKE_FLAGS="-DCMAKE_CXX_FLAGS_RELEASE='-O2' -DCMAKE_C_FLAGS_RELEASE='-O2'"
+fi
 VERBOSE_FLAG=${CMAKE_DETAILLED_LOG:-ON}
 docker exec $TTY_FLAG \
     "$DOCKER_CONTAINER_ID" /bin/bash -xec "
@@ -321,7 +324,7 @@ docker exec $TTY_FLAG \
         rm -rf ci-source/build;
         mkdir ci-source/build;
         cd ci-source/build;
-        cmake .. -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_FLAG};
+        cmake .. -DCMAKE_VERBOSE_MAKEFILE=${VERBOSE_FLAG} ${EXTRA_CMAKE_FLAGS};
         make $BUILD_FLAGS;
         make package;
         chmod -R a+rw ../build;

@@ -124,7 +124,19 @@ public:
   wxDateTime GetAuthTokenReceivedTime() const {
     return m_authTokenReceivedTime;
   }
-
+// Resourceset-Unterstützung
+bool FetchAvailableResourceSets(std::set<wxString>& outResourceSets);
+bool FetchResourceSet(const wxString& resourceSetName,
+                      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& subConfigs,
+                      signalk_notes_opencpn_pi::CanvasState& state,
+                      const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& configuredSubs);
+bool DiscoverSubResourceSets(const wxString& resourceSetName,
+    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outSubs);
+// private:
+int ParseFlatResourceSetJSON(const wxString& json,
+                             const wxString& resourceSetName,
+                             signalk_notes_opencpn_pi::CanvasState& state,
+                             const signalk_notes_opencpn_pi::SubResourceSetConfig& config);    
 private:
   signalk_notes_opencpn_pi* m_parent = nullptr;
 
@@ -177,6 +189,12 @@ private:
                          const wxString& htmlContent);
   void RenderWithHtmlWindow(wxDialog* dlg, wxBoxSizer* sizer,
                             const wxString& htmlContent);
-  wxString FixBrokenLinksInDescription(const wxString& html);                            
+  wxString FixBrokenLinksInDescription(const wxString& html);
+  bool IsValidResourceSet(wxJSONValue rsJson); 
+  int ParseResourceSetJSON(const wxString& json,
+                          const wxString& resourceSetName,
+                          signalk_notes_opencpn_pi::CanvasState& state,
+                          const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& configuredSubs,
+                          std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outDiscoveredSubs);
 };
 #endif  // _TPSIGNALKNOTES_H_

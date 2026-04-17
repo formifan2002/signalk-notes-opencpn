@@ -96,7 +96,7 @@ void tpConfigDialog::CreateControls() {
   // --- Notebook ---
   m_notebook = new wxNotebook(this, wxID_ANY);
 
-  // ========== Tab 1: Provider ==========
+  // ========== Tab Provider ==========
   wxPanel* providerPanel = new wxPanel(m_notebook);
   wxBoxSizer* providerSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -134,7 +134,7 @@ void tpConfigDialog::CreateControls() {
   providerPanel->SetSizer(providerSizer);
   m_notebook->AddPage(providerPanel, _("Provider"));
 
-  // ========== Tab 2: Icon-Zuordnung ==========
+  // ========== Tab Icon-Zuordnung ==========
   wxPanel* iconPanel = new wxPanel(m_notebook);
   wxBoxSizer* iconPanelSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -156,7 +156,11 @@ void tpConfigDialog::CreateControls() {
   iconPanel->SetSizer(iconPanelSizer);
   m_notebook->AddPage(iconPanel, _("Icon mapping"));
 
-  // ========== Tab 3: Display Settings ==========
+  // Resourceset-Tab (wird initial leer erstellt; Inhalt kommt via
+  // UpdateResourceSetTab)
+  CreateResourceSetTab();
+
+  // ========== Tab Display Settings ==========
   CreateDisplayTab();
   m_notebook->AddPage(m_displayPanel, _("Deciption"));
 
@@ -365,7 +369,6 @@ void tpConfigDialog::UpdateIconMappings(const std::set<wxString>& skIcons) {
 void tpConfigDialog::LoadSettings(
     const std::map<wxString, bool>& providers,
     const std::map<wxString, wxString>& iconMappings) {
-
   m_providerList->Clear();
 
   for (const auto& pair : providers) {
@@ -501,9 +504,11 @@ void tpConfigDialog::OnOK(wxCommandEvent& event) {
     m_authCheckTimer->Stop();
   }
 
-  // Plugin-Konfiguration speichern
+  // Plugin-Konfiguration
+  if (m_parent && m_resourceSetScrollWin) {
+    m_parent->m_resourceSetConfigs = GetResourceSetConfigs();
+  }
   m_parent->SaveConfig();
-
   EndModal(wxID_OK);
 }
 
@@ -1053,4 +1058,163 @@ void tpConfigDialog::ValidateScaleSettings() {
 void tpConfigDialog::OnScaleSettingChanged(wxSpinEvent& event) {
   ValidateScaleSettings();
   event.Skip();
+}
+
+void tpConfigDialog::CreateResourceSetTab() {
+  if (!m_notebook) return;
+
+  m_resourceSetPanel = new wxPanel(m_notebook);
+  m_notebook->AddPage(m_resourceSetPanel, _("Resourcesets"));
+
+  wxBoxSizer* mainSizer = new wxBoxSizer(wxVERTICAL);
+
+  wxStaticText* hint = new wxStaticText(
+      m_resourceSetPanel, wxID_ANY,
+      _("Enable resource sets and choose an icon for the chart display."));
+
+  mainSizer->Add(hint, 0, wxALL, 5);
+
+  m_resourceSetScrollWin =
+      new wxScrolledWindow(m_resourceSetPanel, wxID_ANY, wxDefaultPosition,
+                           wxDefaultSize, wxVSCROLL);
+  m_resourceSetScrollWin->SetScrollRate(0, 10);
+  mainSizer->Add(m_resourceSetScrollWin, 1, wxEXPAND | wxALL, 5);
+
+  m_resourceSetPanel->SetSizer(mainSizer);
+}
+
+void tpConfigDialog::UpdateResourceSetTab(
+    const std::map<wxString, signalk_notes_opencpn_pi::ResourceSetConfig>&
+        configs) {
+  if (!m_resourceSetScrollWin) return;
+
+  m_resourceSetScrollWin->DestroyChildren();
+  m_rsRows.clear();
+
+  wxFlexGridSizer* grid = new wxFlexGridSizer(
+      3, 5, 5);  // 3 Spalten: Checkbox | Icon-Combo | (leer)
+  grid->AddGrowableCol(1, 1);
+  m_resourceSetScrollWin->SetSizer(grid);
+
+  for (auto& rsKv : configs) {
+    const wxString& rsName = rsKv.first;
+    const auto& rsCfg = rsKv.second;
+
+    MainRSRow mainRow;
+    mainRow.rsName = rsName;
+
+    // Haupt-Resourceset-Zeile (fett, über volle Breite)
+    wxCheckBox* mainCheck = new wxCheckBox(m_resourceSetScrollWin, wxID_ANY,
+                                           wxString::Format("── %s", rsName));
+    wxFont boldFont = mainCheck->GetFont();
+    boldFont.SetWeight(wxFONTWEIGHT_BOLD);
+    mainCheck->SetFont(boldFont);
+    mainCheck->SetValue(rsCfg.enabled);
+    mainCheck->SetClientData(new wxString(rsName));
+    mainCheck->Bind(wxEVT_CHECKBOX, &tpConfigDialog::OnMainRSToggled, this);
+
+    mainRow.enabledCheck = mainCheck;
+    grid->Add(mainCheck, 0, wxALL | wxALIGN_CENTER_VERTICAL, 3);
+    grid->AddSpacer(0);
+    grid->AddSpacer(0);
+
+    // Unter-Resourcesets
+    for (auto& subKv : rsCfg.subSets) {
+      const wxString& subName = subKv.first;
+      const auto& subCfg = subKv.second;
+
+      SubRSRow row;
+      row.rsName = rsName;
+      row.subName = subName;
+
+      wxCheckBox* subCheck =
+          new wxCheckBox(m_resourceSetScrollWin, wxID_ANY, "    " + subName);
+      subCheck->SetValue(subCfg.enabled);
+      subCheck->Enable(rsCfg.enabled);
+      row.enabledCheck = subCheck;
+
+      wxBitmapComboBox* combo = new wxBitmapComboBox(
+          m_resourceSetScrollWin, wxID_ANY, wxEmptyString, wxDefaultPosition,
+          wxSize(200, -1), 0, nullptr, wxCB_READONLY);
+      // Icons befüllen (gleiche Icons wie im Icon-Zuordnung-Tab)
+      int selectedIdx = 0;
+      for (size_t k = 0; k < m_pluginIcons.GetCount(); k++) {
+        wxString iconName = m_pluginIcons[k];
+        auto bmpIt = m_pluginIconBitmaps.find(iconName);
+        if (bmpIt != m_pluginIconBitmaps.end())
+          combo->Append(iconName, bmpIt->second);
+        else
+          combo->Append(iconName);
+        if (iconName == subCfg.iconName) selectedIdx = (int)k;
+      }
+      if (combo->GetCount() > 0) combo->SetSelection(selectedIdx);
+      combo->Enable(rsCfg.enabled && subCfg.enabled);
+      row.iconCombo = combo;
+
+      // Wenn Unter-Check geändert wird, Combo enablen/disablen
+      subCheck->Bind(wxEVT_CHECKBOX, [combo](wxCommandEvent& evt) {
+        combo->Enable(evt.IsChecked());
+      });
+
+      grid->Add(subCheck, 0, wxALL | wxALIGN_CENTER_VERTICAL, 2);
+      grid->Add(combo, 0, wxALL | wxEXPAND, 2);
+      grid->AddSpacer(0);
+
+      mainRow.subRows.push_back(row);
+    }
+
+    m_rsRows.push_back(mainRow);
+  }
+
+  m_resourceSetScrollWin->FitInside();
+  m_resourceSetScrollWin->Layout();
+}
+
+void tpConfigDialog::OnMainRSToggled(wxCommandEvent& event) {
+  wxCheckBox* mainCheck = dynamic_cast<wxCheckBox*>(event.GetEventObject());
+  if (!mainCheck) return;
+
+  wxString* rsNamePtr = static_cast<wxString*>(mainCheck->GetClientData());
+  if (!rsNamePtr) return;
+  wxString rsName = *rsNamePtr;
+  bool enabled = mainCheck->GetValue();
+
+  for (auto& mainRow : m_rsRows) {
+    if (mainRow.rsName != rsName) continue;
+    for (auto& subRow : mainRow.subRows) {
+      subRow.enabledCheck->Enable(enabled);
+      if (!enabled) {
+        subRow.enabledCheck->SetValue(false);
+        subRow.iconCombo->Enable(false);
+      } else {
+        subRow.iconCombo->Enable(subRow.enabledCheck->GetValue());
+      }
+    }
+    break;
+  }
+}
+
+std::map<wxString, signalk_notes_opencpn_pi::ResourceSetConfig>
+tpConfigDialog::GetResourceSetConfigs() const {
+  std::map<wxString, signalk_notes_opencpn_pi::ResourceSetConfig> result;
+
+  for (auto& mainRow : m_rsRows) {
+    signalk_notes_opencpn_pi::ResourceSetConfig cfg;
+    cfg.name = mainRow.rsName;
+    cfg.enabled = mainRow.enabledCheck->GetValue();
+
+    for (auto& subRow : mainRow.subRows) {
+      signalk_notes_opencpn_pi::SubResourceSetConfig subCfg;
+      subCfg.name = subRow.subName;
+      subCfg.enabled = subRow.enabledCheck->GetValue();
+      int sel = subRow.iconCombo->GetSelection();
+      if (sel >= 0 && sel < (int)m_pluginIcons.GetCount())
+        subCfg.iconName = m_pluginIcons[sel];
+      cfg.subSets[subRow.subName] = subCfg;
+    }
+
+    result[mainRow.rsName] = cfg;
+  }
+
+  return result;
 }

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 08:53+0100\n"
+"POT-Creation-Date: 2026-03-31 10:41+0200\n"
 "PO-Revision-Date: 2023-10-04 18:33\n"
 "Last-Translator: \n"
 "Language-Team: Hindi\n"
@@ -14,68 +14,75 @@ msgstr ""
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
 "X-Crowdin-Language: hi\n"
-"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/signalk_notes_opencpn_pi.pot\n"
+"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/"
+"signalk_notes_opencpn_pi.pot\n"
 "X-Crowdin-File-ID: 344\n"
 
 #: src/tpConfigDialog.cpp:123
 msgid "API update interval (minutes)"
 msgstr "API अपडेट अंतराल (मिनट)"
 
-#: src/tpConfigDialog.cpp:927
+#: src/tpConfigDialog.cpp:932
 msgid "Advanced debug logging in opencpn.log"
 msgstr "opencpn.log में उन्नत डिबग लॉगिंग"
 
-#: src/tpConfigDialog.cpp:709
+#. Auth-Button deaktiviert mit neuem Text
+#: src/tpConfigDialog.cpp:714
 msgid "Authentication in progress..."
 msgstr "प्रमाणीकरण जारी है..."
 
-#: src/tpConfigDialog.cpp:187
+#: src/tpConfigDialog.cpp:191
 msgid "Cancel"
 msgstr "रद्द करें"
 
-#: src/tpConfigDialog.cpp:180
+#: src/tpConfigDialog.cpp:184
 msgid "Cancel authentication"
 msgstr "प्रमाणीकरण रद्द करें"
 
-#: src/tpSignalKNotes.cpp:428
+#: src/tpSignalKNotes.cpp:497 src/tpSignalKNotes.cpp:562
+#: src/tpSignalKNotes.cpp:639
 msgid "Center on map"
 msgstr "मानचित्र पर केंद्रित करें"
 
-#: src/tpConfigDialog.cpp:868 src/tpConfigDialog.cpp:875
+#: src/tpConfigDialog.cpp:873 src/tpConfigDialog.cpp:880
 msgid "Circle color:"
 msgstr "वृत्त का रंग:"
 
-#: src/tpConfigDialog.cpp:860
+#: src/tpConfigDialog.cpp:865
 msgid "Cluster radius (px):"
 msgstr "क्लस्टर त्रिज्या (px):"
 
-#: src/tpConfigDialog.cpp:846
+#: src/tpConfigDialog.cpp:851
 msgid "Cluster settings"
 msgstr "क्लस्टर सेटिंग्स"
 
-#: src/tpConfigDialog.cpp:852
+#: src/tpConfigDialog.cpp:857
 msgid "Cluster size (px):"
 msgstr "क्लस्टर आकार (px):"
 
-#: src/tpConfigDialog.cpp:161
+#: src/tpConfigDialog.cpp:165
 msgid "Deciption"
 msgstr "विवरण"
 
-#: src/tpSignalKNotes.cpp:367
+#: src/tpSignalKNotes.cpp:545
 msgid "Details could not be loaded."
 msgstr "विवरण लोड नहीं किए जा सके।"
 
-#: src/tpConfigDialog.cpp:556
+#: src/tpConfigDialog.cpp:1073
+msgid "Enable resource sets and choose an icon for the chart display."
+msgstr ""
+
+#: src/tpConfigDialog.cpp:561
 msgid "Error"
 msgstr "त्रुटि"
 
-#: src/tpConfigDialog.cpp:553
+#: src/tpConfigDialog.cpp:558
 msgid ""
 "Error requesting authentication. Are there still 'access requests' in "
 "SignalK? If yes, delete/reject them."
 msgstr ""
-"प्रमाणीकरण अनुरोध में त्रुटि। क्या SignalK में अभी भी 'एक्सेस अनुरोध' मौजूद हैं? "
-"यदि हाँ, तो उन्हें हटाएँ या अस्वीकार करें।"
+"प्रमाणीकरण अनुरोध में त्रुटि। क्या SignalK में अभी भी 'एक्सेस अनुरोध' मौजूद हैं? यदि हाँ, तो "
+"उन्हें हटाएँ या अस्वीकार करें।"
 
 #: src/tpicons.cpp:71
 msgid ""
@@ -83,15 +90,15 @@ msgid ""
 msgstr ""
 "सभी signalk_notes_opencpn_pi आइकन लोड नहीं हो सके। विवरण के लिए OCPN लॉग देखें।"
 
-#: src/tpSignalKNotes.cpp:751
+#: src/tpSignalKNotes.cpp:978
 msgid "Failed to parse note details JSON"
 msgstr "नोट विवरण JSON पार्स करने में विफल"
 
-#: src/tpSignalKNotes.cpp:627
+#: src/tpSignalKNotes.cpp:854
 msgid "Failed to parse notes list JSON"
 msgstr "नोट सूची JSON पार्स करने में विफल"
 
-#: src/tpConfigDialog.cpp:881
+#: src/tpConfigDialog.cpp:886
 msgid "Font size"
 msgstr "फ़ॉन्ट आकार"
 
@@ -99,20 +106,20 @@ msgstr "फ़ॉन्ट आकार"
 msgid "Icon mapping"
 msgstr "आइकन मैपिंग"
 
-#: src/tpConfigDialog.cpp:821
+#: src/tpConfigDialog.cpp:826
 msgid "Icon settings"
 msgstr "आइकन सेटिंग्स"
 
-#: src/tpConfigDialog.cpp:827
+#: src/tpConfigDialog.cpp:832
 msgid "Icon size (px):"
 msgstr "आइकन आकार (px):"
 
-#: src/tpConfigDialog.cpp:528
+#: src/tpConfigDialog.cpp:533
 #, c-format
 msgid "Icons in the left map area: %d"
 msgstr "बाएँ मानचित्र क्षेत्र में आइकन: %d"
 
-#: src/tpConfigDialog.cpp:517
+#: src/tpConfigDialog.cpp:522
 #, c-format
 msgid "Icons in the map area: %d"
 msgstr "मानचित्र क्षेत्र में आइकन: %d"
@@ -121,20 +128,20 @@ msgstr "मानचित्र क्षेत्र में आइकन: %
 msgid "Icons in the map area: 0"
 msgstr "मानचित्र क्षेत्र में आइकन: 0"
 
-#: src/tpConfigDialog.cpp:530
+#: src/tpConfigDialog.cpp:535
 #, c-format
 msgid "Icons in the right map area: %d"
 msgstr "दाएँ मानचित्र क्षेत्र में आइकन: %d"
 
-#: src/tpConfigDialog.cpp:545
+#: src/tpConfigDialog.cpp:550
 msgid ""
 "In SignalK, please confirm the request in the menu item 'Access Requests' "
 "with 'Permission' Admin and 'Authentication Timeout' NEVER."
 msgstr ""
-"SignalK में, कृपया 'Access Requests' मेनू में अनुरोध की पुष्टि करें, "
-"'Permission' को Admin और 'Authentication Timeout' को NEVER पर सेट करें।"
+"SignalK में, कृपया 'Access Requests' मेनू में अनुरोध की पुष्टि करें, 'Permission' को "
+"Admin और 'Authentication Timeout' को NEVER पर सेट करें।"
 
-#: src/signalk_notes_opencpn_pi.cpp:737
+#: src/signalk_notes_opencpn_pi.cpp:773
 msgid "Invalid host or port values in DataConnections."
 msgstr "DataConnections में होस्ट या पोर्ट मान अमान्य हैं।"
 
@@ -142,25 +149,24 @@ msgstr "DataConnections में होस्ट या पोर्ट मा�
 msgid "Map SignalK icons to plugin icons:"
 msgstr "SignalK आइकन को प्लगइन आइकन से मैप करें:"
 
-#: src/tpConfigDialog.cpp:903
+#: src/tpConfigDialog.cpp:908
 msgid "Maximum scale for cluster 1:"
 msgstr "क्लस्टर 1 के लिए अधिकतम स्केल:"
 
-#: src/tpConfigDialog.cpp:1041
+#: src/tpConfigDialog.cpp:1046
 msgid "Maximum scale must be at least 800."
 msgstr "अधिकतम स्केल कम से कम 800 होना चाहिए।"
 
-#: src/tpConfigDialog.cpp:1044
+#: src/tpConfigDialog.cpp:1049
 msgid ""
 "Maximum scale must be smaller than minimum scale (or minimum scale = 0)."
-msgstr ""
-"अधिकतम स्केल न्यूनतम स्केल से छोटा होना चाहिए (या न्यूनतम स्केल = 0)।"
+msgstr "अधिकतम स्केल न्यूनतम स्केल से छोटा होना चाहिए (या न्यूनतम स्केल = 0)।"
 
-#: src/tpConfigDialog.cpp:912
+#: src/tpConfigDialog.cpp:917
 msgid "Minimum scale for cluster 1:"
 msgstr "क्लस्टर 1 के लिए न्यूनतम स्केल:"
 
-#: src/signalk_notes_opencpn_pi.cpp:693
+#: src/signalk_notes_opencpn_pi.cpp:729
 msgid ""
 "No DataConnections entry found.\n"
 "Please check your OpenCPN settings."
@@ -168,30 +174,31 @@ msgstr ""
 "कोई DataConnections प्रविष्टि नहीं मिली।\n"
 "कृपया अपनी OpenCPN सेटिंग्स जाँचें।"
 
-#: src/signalk_notes_opencpn_pi.cpp:727
+#: src/signalk_notes_opencpn_pi.cpp:763
 msgid ""
 "No matching NMEA SignalK connection found.\n"
 "Please add a connection for SignalK in OpenCPN."
 msgstr ""
-"SignalK के लिए कोई मेल खाता NMEA कनेक्शन नहीं मिला।"
-"कृपया OpenCPN में SignalK कनेक्शन जोड़ें."
+"SignalK के लिए कोई मेल खाता NMEA कनेक्शन नहीं मिला।कृपया OpenCPN में SignalK कनेक्शन "
+"जोड़ें."
 
-#: src/tpConfigDialog.cpp:379
+#: src/tpConfigDialog.cpp:382
 msgid "Note: No providers configured yet. Move the map to discover providers."
 msgstr ""
-"नोट: अभी तक कोई प्रदाता कॉन्फ़िगर नहीं किया गया है। प्रदाताओं को खोजने के लिए मानचित्र को स्थानांतरित करें।"
+"नोट: अभी तक कोई प्रदाता कॉन्फ़िगर नहीं किया गया है। प्रदाताओं को खोजने के लिए मानचित्र "
+"को स्थानांतरित करें।"
 
 #: src/tpConfigDialog.cpp:92
 msgid "Note: Providers are discovered as you move the map."
-msgstr ""
-"नोट: जैसे‑जैसे आप मानचित्र को स्थानांतरित करते हैं, प्रदाता खोजे जाते हैं।"
+msgstr "नोट: जैसे‑जैसे आप मानचित्र को स्थानांतरित करते हैं, प्रदाता खोजे जाते हैं।"
 
-#: src/signalk_notes_opencpn_pi.cpp:1238
+#: src/signalk_notes_opencpn_pi.cpp:1469
 msgid "Notes at this position"
 msgstr "इस स्थान पर नोट्स"
 
-#: src/signalk_notes_opencpn_pi.cpp:1280 src/tpSignalKNotes.cpp:449
-#: src/tpConfigDialog.cpp:186
+#: src/signalk_notes_opencpn_pi.cpp:1511 src/tpSignalKNotes.cpp:515
+#: src/tpSignalKNotes.cpp:580 src/tpSignalKNotes.cpp:657
+#: src/tpConfigDialog.cpp:190
 msgid "OK"
 msgstr "ठीक है"
 
@@ -199,7 +206,7 @@ msgstr "ठीक है"
 msgid "OpenCPN Alert"
 msgstr "OpenCPN चेतावनी"
 
-#: src/tpConfigDialog.cpp:838 src/tpConfigDialog.cpp:892
+#: src/tpConfigDialog.cpp:843 src/tpConfigDialog.cpp:897
 msgid "Preview:"
 msgstr "पूर्वावलोकन:"
 
@@ -207,25 +214,29 @@ msgstr "पूर्वावलोकन:"
 msgid "Provider"
 msgstr "प्रदाता"
 
+#: src/tpConfigDialog.cpp:1067
+msgid "Resourcesets"
+msgstr ""
+
 #: src/tpConfigDialog.cpp:104
 msgid "Select the providers to display:"
 msgstr "प्रदर्शित करने के लिए प्रदाताओं का चयन करें:"
 
-#: src/tpSignalKNotes.cpp:580
+#: src/tpSignalKNotes.cpp:778
 msgid "Server host not configured"
 msgstr "सर्वर होस्ट कॉन्फ़िगर नहीं है"
 
-#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:677
-#: src/tpConfigDialog.cpp:725
+#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:682
+#: src/tpConfigDialog.cpp:730
 msgid "SignalK Connection"
 msgstr "SignalK कनेक्शन"
 
-#: src/tpSignalKNotes.cpp:387
+#: src/tpSignalKNotes.cpp:611
 msgid "SignalK Note Details"
 msgstr "SignalK नोट विवरण"
 
-#: src/signalk_notes_opencpn_pi.cpp:181 src/signalk_notes_opencpn_pi.cpp:184
-#: src/signalk_notes_opencpn_pi.cpp:187 src/signalk_notes_opencpn_pi.cpp:189
+#: src/signalk_notes_opencpn_pi.cpp:180 src/signalk_notes_opencpn_pi.cpp:183
+#: src/signalk_notes_opencpn_pi.cpp:186 src/signalk_notes_opencpn_pi.cpp:188
 msgid "SignalK Notes"
 msgstr "SignalK नोट्स"
 
@@ -233,16 +244,21 @@ msgstr "SignalK नोट्स"
 msgid "SignalK Notes Configuration"
 msgstr "SignalK नोट्स कॉन्फ़िगरेशन"
 
-#: src/signalk_notes_opencpn_pi.cpp:695 src/signalk_notes_opencpn_pi.cpp:729
-#: src/signalk_notes_opencpn_pi.cpp:738
+#: src/signalk_notes_opencpn_pi.cpp:731 src/signalk_notes_opencpn_pi.cpp:765
+#: src/signalk_notes_opencpn_pi.cpp:774
 msgid "SignalK Notes Plugin"
 msgstr "SignalK नोट्स प्लगइन"
 
-#: src/tpConfigDialog.cpp:175 src/tpConfigDialog.cpp:729
+#. Auth-Button aktiv
+#: src/tpConfigDialog.cpp:179 src/tpConfigDialog.cpp:734
 msgid "SignalK authentication"
 msgstr "SignalK प्रमाणीकरण"
 
-#: src/tpConfigDialog.cpp:532
+#: src/tpConfigDialog.cpp:537
 #, c-format
 msgid "Total icons: %d"
 msgstr "कुल आइकन: %d"
+
+#: src/tpSignalKNotes.cpp:1671 src/tpSignalKNotes.cpp:1901
+msgid "Unknown"
+msgstr ""

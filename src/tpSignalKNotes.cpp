@@ -36,10 +36,8 @@
 #include <wx/bmpbndl.h>
 #endif
 
-wxString HttpGet(const wxString& url,
-                 const wxString& authHeader = "",
-                 long* httpStatusOut = nullptr,
-                 wxString* errorOut = nullptr);
+wxString HttpGet(const wxString& url, const wxString& authHeader = "",
+                 long* httpStatusOut = nullptr, wxString* errorOut = nullptr);
 
 #if (defined(__linux__) || defined(__APPLE__)) && !defined(__OCPN__ANDROID__)
 
@@ -53,61 +51,54 @@ static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb,
   return total;
 }
 
-wxString HttpGet(const wxString& url,
-                 const wxString& authHeader,
-                 long* httpStatusOut,
-                 wxString* errorOut)
-{
-    CURL* curl = curl_easy_init();
-    if (!curl) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "curl_easy_init failed";
-        return "";
-    }
+wxString HttpGet(const wxString& url, const wxString& authHeader,
+                 long* httpStatusOut, wxString* errorOut) {
+  CURL* curl = curl_easy_init();
+  if (!curl) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "curl_easy_init failed";
+    return "";
+  }
 
-    std::string response;
-    struct curl_slist* headers = NULL;
+  std::string response;
+  struct curl_slist* headers = NULL;
 
-    if (!authHeader.IsEmpty()) {
-        headers = curl_slist_append(headers, authHeader.mb_str().data());
-    }
+  if (!authHeader.IsEmpty()) {
+    headers = curl_slist_append(headers, authHeader.mb_str().data());
+  }
 
-    curl_easy_setopt(curl, CURLOPT_URL, url.mb_str().data());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+  curl_easy_setopt(curl, CURLOPT_URL, url.mb_str().data());
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+  curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 
-    if (headers)
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  if (headers) curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-    CURLcode res = curl_easy_perform(curl);
+  CURLcode res = curl_easy_perform(curl);
 
-    long httpCode = 0;
-    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+  long httpCode = 0;
+  curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
 
-    if (httpStatusOut)
-        *httpStatusOut = httpCode;
+  if (httpStatusOut) *httpStatusOut = httpCode;
 
-    if (res != CURLE_OK) {
-        if (errorOut)
-            *errorOut = wxString::Format("CURL error: %s",
-                                         curl_easy_strerror(res));
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-        return "";
-    }
-
+  if (res != CURLE_OK) {
+    if (errorOut)
+      *errorOut = wxString::Format("CURL error: %s", curl_easy_strerror(res));
     curl_slist_free_all(headers);
     curl_easy_cleanup(curl);
+    return "";
+  }
 
-    if (httpCode != 200) {
-        if (errorOut)
-            *errorOut = wxString::Format("HTTP error %ld", httpCode);
-        return "";
-    }
+  curl_slist_free_all(headers);
+  curl_easy_cleanup(curl);
 
-    return wxString::FromUTF8(response.c_str());
+  if (httpCode != 200) {
+    if (errorOut) *errorOut = wxString::Format("HTTP error %ld", httpCode);
+    return "";
+  }
+
+  return wxString::FromUTF8(response.c_str());
 }
 
 #endif
@@ -117,198 +108,186 @@ wxString HttpGet(const wxString& url,
 #include <winhttp.h>
 #pragma comment(lib, "winhttp.lib")
 
-wxString HttpGet(const wxString& url,
-                 const wxString& authHeader,
-                 long* httpStatusOut,
-                 wxString* errorOut)
-{
-    URL_COMPONENTS uc = {0};
-    uc.dwStructSize = sizeof(uc);
+wxString HttpGet(const wxString& url, const wxString& authHeader,
+                 long* httpStatusOut, wxString* errorOut) {
+  URL_COMPONENTS uc = {0};
+  uc.dwStructSize = sizeof(uc);
 
-    wchar_t host[256];
-    wchar_t path[2048];
+  wchar_t host[256];
+  wchar_t path[2048];
 
-    uc.lpszHostName = host;
-    uc.dwHostNameLength = 256;
-    uc.lpszUrlPath = path;
-    uc.dwUrlPathLength = 2048;
+  uc.lpszHostName = host;
+  uc.dwHostNameLength = 256;
+  uc.lpszUrlPath = path;
+  uc.dwUrlPathLength = 2048;
 
-    if (!WinHttpCrackUrl(url.wc_str(), 0, 0, &uc)) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpCrackUrl failed";
-        return "";
-    }
+  if (!WinHttpCrackUrl(url.wc_str(), 0, 0, &uc)) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpCrackUrl failed";
+    return "";
+  }
 
-    HINTERNET hSession =
-        WinHttpOpen(L"SignalKNotes/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
-                    WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+  HINTERNET hSession =
+      WinHttpOpen(L"SignalKNotes/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                  WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 
-    if (!hSession) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpOpen failed";
-        return "";
-    }
+  if (!hSession) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpOpen failed";
+    return "";
+  }
 
-    HINTERNET hConnect = WinHttpConnect(hSession, uc.lpszHostName, uc.nPort, 0);
-    if (!hConnect) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpConnect failed";
-        WinHttpCloseHandle(hSession);
-        return "";
-    }
+  HINTERNET hConnect = WinHttpConnect(hSession, uc.lpszHostName, uc.nPort, 0);
+  if (!hConnect) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpConnect failed";
+    WinHttpCloseHandle(hSession);
+    return "";
+  }
 
-    HINTERNET hRequest = WinHttpOpenRequest(
-        hConnect, L"GET", uc.lpszUrlPath, NULL, WINHTTP_NO_REFERER,
-        WINHTTP_DEFAULT_ACCEPT_TYPES,
-        (uc.nScheme == INTERNET_SCHEME_HTTPS) ? WINHTTP_FLAG_SECURE : 0);
+  HINTERNET hRequest = WinHttpOpenRequest(
+      hConnect, L"GET", uc.lpszUrlPath, NULL, WINHTTP_NO_REFERER,
+      WINHTTP_DEFAULT_ACCEPT_TYPES,
+      (uc.nScheme == INTERNET_SCHEME_HTTPS) ? WINHTTP_FLAG_SECURE : 0);
 
-    if (!hRequest) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpOpenRequest failed";
-        WinHttpCloseHandle(hConnect);
-        WinHttpCloseHandle(hSession);
-        return "";
-    }
+  if (!hRequest) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpOpenRequest failed";
+    WinHttpCloseHandle(hConnect);
+    WinHttpCloseHandle(hSession);
+    return "";
+  }
 
-    if (!authHeader.IsEmpty()) {
-        std::wstring hdr = std::wstring(authHeader.wc_str());
-        WinHttpAddRequestHeaders(
-            hRequest, hdr.c_str(), (DWORD)-1,
-            WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE);
-    }
+  if (!authHeader.IsEmpty()) {
+    std::wstring hdr = std::wstring(authHeader.wc_str());
+    WinHttpAddRequestHeaders(
+        hRequest, hdr.c_str(), (DWORD)-1,
+        WINHTTP_ADDREQ_FLAG_ADD | WINHTTP_ADDREQ_FLAG_REPLACE);
+  }
 
-    if (!WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
-                            WINHTTP_NO_REQUEST_DATA, 0, 0, 0)) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpSendRequest failed";
-        WinHttpCloseHandle(hRequest);
-        WinHttpCloseHandle(hConnect);
-        WinHttpCloseHandle(hSession);
-        return "";
-    }
-
-    if (!WinHttpReceiveResponse(hRequest, NULL)) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpReceiveResponse failed";
-        WinHttpCloseHandle(hRequest);
-        WinHttpCloseHandle(hConnect);
-        WinHttpCloseHandle(hSession);
-        return "";
-    }
-
-    DWORD status = 0;
-    DWORD size = sizeof(status);
-
-    if (!WinHttpQueryHeaders(hRequest,
-                             WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
-                             WINHTTP_HEADER_NAME_BY_INDEX,
-                             &status,
-                             &size,
-                             WINHTTP_NO_HEADER_INDEX))
-    {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "WinHttpQueryHeaders failed";
-        WinHttpCloseHandle(hRequest);
-        WinHttpCloseHandle(hConnect);
-        WinHttpCloseHandle(hSession);
-        return "";
-    }
-
-    if (httpStatusOut)
-        *httpStatusOut = status;
-
-    std::string response;
-    DWORD bytesAvailable = 0;
-
-    do {
-        if (!WinHttpQueryDataAvailable(hRequest, &bytesAvailable)) break;
-        if (bytesAvailable == 0) break;
-
-        std::vector<char> buffer(bytesAvailable);
-        DWORD bytesRead = 0;
-
-        if (!WinHttpReadData(hRequest, buffer.data(), bytesAvailable, &bytesRead))
-            break;
-
-        response.append(buffer.data(), bytesRead);
-
-    } while (bytesAvailable > 0);
-
+  if (!WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0,
+                          WINHTTP_NO_REQUEST_DATA, 0, 0, 0)) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpSendRequest failed";
     WinHttpCloseHandle(hRequest);
     WinHttpCloseHandle(hConnect);
     WinHttpCloseHandle(hSession);
+    return "";
+  }
 
-    if (status != 200) {
-        if (errorOut)
-            *errorOut = wxString::Format("HTTP error %lu", status);
-        return "";
-    }
+  if (!WinHttpReceiveResponse(hRequest, NULL)) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpReceiveResponse failed";
+    WinHttpCloseHandle(hRequest);
+    WinHttpCloseHandle(hConnect);
+    WinHttpCloseHandle(hSession);
+    return "";
+  }
 
-    return wxString::FromUTF8(response.c_str());
+  DWORD status = 0;
+  DWORD size = sizeof(status);
+
+  if (!WinHttpQueryHeaders(
+          hRequest, WINHTTP_QUERY_STATUS_CODE | WINHTTP_QUERY_FLAG_NUMBER,
+          WINHTTP_HEADER_NAME_BY_INDEX, &status, &size,
+          WINHTTP_NO_HEADER_INDEX)) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "WinHttpQueryHeaders failed";
+    WinHttpCloseHandle(hRequest);
+    WinHttpCloseHandle(hConnect);
+    WinHttpCloseHandle(hSession);
+    return "";
+  }
+
+  if (httpStatusOut) *httpStatusOut = status;
+
+  std::string response;
+  DWORD bytesAvailable = 0;
+
+  do {
+    if (!WinHttpQueryDataAvailable(hRequest, &bytesAvailable)) break;
+    if (bytesAvailable == 0) break;
+
+    std::vector<char> buffer(bytesAvailable);
+    DWORD bytesRead = 0;
+
+    if (!WinHttpReadData(hRequest, buffer.data(), bytesAvailable, &bytesRead))
+      break;
+
+    response.append(buffer.data(), bytesRead);
+
+  } while (bytesAvailable > 0);
+
+  WinHttpCloseHandle(hRequest);
+  WinHttpCloseHandle(hConnect);
+  WinHttpCloseHandle(hSession);
+
+  if (status != 200) {
+    if (errorOut) *errorOut = wxString::Format("HTTP error %lu", status);
+    return "";
+  }
+
+  return wxString::FromUTF8(response.c_str());
 }
 
 #endif
 
 #ifdef __OCPN__ANDROID__
 
-wxString HttpGet(const wxString& url,
-                 const wxString& authHeader,
-                 long* httpStatusOut,
-                 wxString* errorOut)
-{
-    wxHTTP http;
-    http.SetTimeout(10);
+wxString HttpGet(const wxString& url, const wxString& authHeader,
+                 long* httpStatusOut, wxString* errorOut) {
+  wxHTTP http;
+  http.SetTimeout(10);
 
-    wxURL wxurl(url);
-    if (wxurl.GetError() != wxURL_NOERR) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "wxURL parse error";
-        return "";
-    }
+  wxURL wxurl(url);
+  if (wxurl.GetError() != wxURL_NOERR) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "wxURL parse error";
+    return "";
+  }
 
-    wxString host = wxurl.GetServer();
-    long port = 80;
-    wxurl.GetPort().ToLong(&port);
-    wxString path = "/" + wxurl.GetPath();
+  wxString host = wxurl.GetServer();
+  long port = 80;
+  wxurl.GetPort().ToLong(&port);
+  wxString path = "/" + wxurl.GetPath();
 
-    if (!authHeader.IsEmpty()) {
-        http.SetHeader("Authorization", authHeader.AfterFirst(' ').AfterFirst(' '));
-    }
+  if (!authHeader.IsEmpty()) {
+    http.SetHeader("Authorization", authHeader.AfterFirst(' ').AfterFirst(' '));
+  }
 
-    if (!http.Connect(host, (unsigned short)port)) {
-        if (httpStatusOut) *httpStatusOut = -1;
-        if (errorOut) *errorOut = "HTTP connect failed";
-        return "";
-    }
+  if (!http.Connect(host, (unsigned short)port)) {
+    if (httpStatusOut) *httpStatusOut = -1;
+    if (errorOut) *errorOut = "HTTP connect failed";
+    return "";
+  }
 
-    wxInputStream* in = http.GetInputStream(path);
-    if (!in || !in->IsOk()) {
-        if (httpStatusOut) *httpStatusOut = http.GetResponse();
-        if (errorOut) *errorOut = "HTTP input stream failed";
-        delete in;
-        return "";
-    }
-
-    if (httpStatusOut)
-        *httpStatusOut = http.GetResponse();
-
-    wxString response;
-    char buf[4096];
-    while (true) {
-        in->Read(buf, sizeof(buf));
-        size_t read = in->LastRead();
-        if (read == 0) break;
-        response += wxString::FromUTF8(buf, read);
-    }
+  wxInputStream* in = http.GetInputStream(path);
+  if (!in || !in->IsOk()) {
+    if (httpStatusOut) *httpStatusOut = http.GetResponse();
+    if (errorOut) *errorOut = "HTTP input stream failed";
     delete in;
+    return "";
+  }
 
-    if (httpStatusOut && *httpStatusOut != 200) {
-        if (errorOut)
-            *errorOut = wxString::Format("HTTP error %ld", *httpStatusOut);
-        return "";
-    }
+  if (httpStatusOut) *httpStatusOut = http.GetResponse();
 
-    return response;
+  wxString response;
+  char buf[4096];
+  while (true) {
+    in->Read(buf, sizeof(buf));
+    size_t read = in->LastRead();
+    if (read == 0) break;
+    response += wxString::FromUTF8(buf, read);
+  }
+  delete in;
+
+  if (httpStatusOut && *httpStatusOut != 200) {
+    if (errorOut)
+      *errorOut = wxString::Format("HTTP error %ld", *httpStatusOut);
+    return "";
+  }
+
+  return response;
 }
 
 #endif
@@ -386,27 +365,56 @@ void tpSignalKNotesManager::UpdateDisplayedIcons(
     SKN_LOG(m_parent, "Failed to fetch notes");
     return;
   }
-  if (ok == 0) {
-    // No update of Notes
-    return;
+
+  // Resourcesets abrufen - nur wenn Intervall abgelaufen
+  wxLongLong now = wxGetLocalTimeMillis();
+  bool rsFetchDue = (state.lastRSFetchTime == 0 ||
+      (now - state.lastRSFetchTime).ToLong() >
+          (long)(m_parent->GetFetchInterval() * 60 * 1000));
+
+  if (m_parent && rsFetchDue) {
+    std::set<wxString> activeRSNames;
+
+    for (auto& rsKv : m_parent->m_resourceSetConfigs) {
+      if (!rsKv.second.enabled) continue;
+      activeRSNames.insert(rsKv.first);
+
+      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig> discovered;
+      FetchResourceSet(rsKv.first, discovered, state, rsKv.second.subSets);
+
+      for (auto& sub : discovered) {
+        if (rsKv.second.subSets.find(sub.first) == rsKv.second.subSets.end()) {
+          rsKv.second.subSets[sub.first] = sub.second;
+        }
+      }
+    }
+
+    // Cleanup ohne Mutex — separater Lock-Block
+    {
+      wxMutexLocker lock(state.notesMutex);
+      std::vector<wxString> toRemove;
+      for (auto& kv : state.resourceSetNotes) {
+        wxString rsName = kv.second.source.AfterFirst(':').BeforeLast(':');
+        if (activeRSNames.find(rsName) == activeRSNames.end()) {
+          toRemove.push_back(kv.first);
+        }
+      }
+      for (auto& guid : toRemove) state.resourceSetNotes.erase(guid);
+    }  // ← Lock wird hier freigegeben
+
+    state.lastRSFetchTime = now;
   }
 
-  wxMutexLocker lock(state.notesMutex);
+  if (ok == 0) return;
+
+  wxMutexLocker lock(state.notesMutex);  // ← jetzt kein Deadlock mehr
 
   bool newMappingsFound = false;
 
   for (auto& pair : state.notes) {
     SignalKNote& note = pair.second;
 
-    // 1. Prüfe ob Icon-Pfad-Mapping existiert
     if (!note.iconName.IsEmpty()) {
-      if (m_iconMappings.find(note.iconName) == m_iconMappings.end()) {
-        wxString iconPath = ResolveIconPath(note.iconName);
-        m_iconMappings[note.iconName] = iconPath;
-        newMappingsFound = true;
-      }
-
-      // 2. Lade Bitmap in Cache falls noch nicht vorhanden
       if (m_iconMappings.find(note.iconName) == m_iconMappings.end()) {
         wxString iconPath = ResolveIconPath(note.iconName);
         m_iconMappings[note.iconName] = iconPath;
@@ -414,7 +422,6 @@ void tpSignalKNotesManager::UpdateDisplayedIcons(
       }
     }
 
-    // 3. Prüfe ob Provider aktiviert ist
     bool providerEnabled = true;
     if (!note.source.IsEmpty()) {
       auto it = m_providerSettings.find(note.source);
@@ -423,7 +430,6 @@ void tpSignalKNotesManager::UpdateDisplayedIcons(
       }
     }
 
-    // 4. Setze isDisplayed
     note.isDisplayed = providerEnabled;
   }
 
@@ -434,132 +440,230 @@ void tpSignalKNotesManager::UpdateDisplayedIcons(
 
 SignalKNote* tpSignalKNotesManager::GetNoteByGUID(
     signalk_notes_opencpn_pi::CanvasState& state, const wxString& guid) {
-  wxMutexLocker lock(state.notesMutex);
-
+  // Normale Notes
   auto it = state.notes.find(guid);
   if (it != state.notes.end()) return &it->second;
+
+  // Resourceset-Notes
+  auto rsIt = state.resourceSetNotes.find(guid);
+  if (rsIt != state.resourceSetNotes.end()) return &rsIt->second;
+
   return nullptr;
 }
 
 void tpSignalKNotesManager::OnIconClick(
     const wxString& guid, signalk_notes_opencpn_pi::CanvasState& state,
-    int canvasIndex) {
-  SKN_LOG(m_parent, "OnIconClick called with guid='%s'", guid);
-  m_parent->m_dialogOpen = true;
+    int canvasIndex)
+{
+    SKN_LOG(m_parent, "OnIconClick called with guid='%s'", guid);
+    m_parent->m_dialogOpen = true;
 
-  SignalKNote* note = GetNoteByGUID(state, guid);
-  if (!note) {
-    SKN_LOG(m_parent, "Note with guid='%s' not found!", guid);
-    return;
-  }
+    // --- Gemeinsamer Exit-Block ---
+    auto FinishAndReleaseMouse = [&]() -> void {
+        wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+        if (canvas) {
+            wxMouseEvent upEvent(wxEVT_LEFT_UP);
+            upEvent.SetPosition(wxGetMousePosition());
+            canvas->GetEventHandler()->ProcessEvent(upEvent);
+        }
+        m_parent->m_dialogOpen = false;
+    };
 
-  if (note->name.IsEmpty() || note->description.IsEmpty()) {
-    if (!FetchNoteDetails(note->id, *note)) {
-      SKN_LOG(m_parent, "Failed to fetch details for %s", note->id);
-      if (note->name.IsEmpty()) note->name = note->id;
-      if (note->description.IsEmpty())
-        note->description = _("Details could not be loaded.");
+    // ============================================================
+    // 1. ResourceSet-Notes
+    // ============================================================
+    {
+        wxMutexLocker lock(state.notesMutex);
+        auto rsIt = state.resourceSetNotes.find(guid);
+        if (rsIt != state.resourceSetNotes.end()) {
+            const SignalKNote& note = rsIt->second;
+
+            wxDialog* dlg = new wxDialog(
+                m_parent->GetParentWindow(), wxID_ANY, note.name,
+                wxDefaultPosition, wxSize(500, 400),
+                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+
+            wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+            // Beschreibung
+            wxTextCtrl* textCtrl = new wxTextCtrl(
+                dlg, wxID_ANY, note.description, wxDefaultPosition,
+                wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
+            sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 10);
+
+            // Buttons
+            wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+
+            wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+            centerBtn->Bind(wxEVT_BUTTON,
+                [this, &note, canvasIndex, dlg](wxCommandEvent&) {
+                    wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+                    double scale = 0.0;
+                    if (canvas) {
+                        scale = m_parent->m_canvasStates[canvasIndex]
+                                    .viewPort.view_scale_ppm;
+                    }
+                    dlg->EndModal(wxID_OK);
+                    if (canvas) {
+                        CanvasJumpToPosition(canvas, note.latitude, note.longitude, scale);
+                    }
+                });
+            btnSizer->Add(centerBtn, 0, wxALL, 5);
+
+            btnSizer->AddStretchSpacer();
+
+            wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
+            btnSizer->Add(okBtn, 0, wxALL, 5);
+
+            sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
+
+            dlg->SetSizer(sizer);
+            dlg->ShowModal();
+            dlg->Destroy();
+
+            FinishAndReleaseMouse();
+            return;
+        }
     }
-  }
 
-  SKN_LOG(m_parent, "Found note '%s'", note->name);
-  // Berechne 2/3 der GESAMTEN verfügbaren Fläche aller Canvas
-  int totalWidth = 0;
-  int totalHeight = 0;
-
-  for (const auto& pair : m_parent->m_canvasStates) {
-    if (pair.second.valid) {
-      totalWidth = std::max(totalWidth, pair.second.viewPort.pix_width);
-      totalHeight = std::max(totalHeight, pair.second.viewPort.pix_height);
+    // ============================================================
+    // 2. Normale Notes
+    // ============================================================
+    SignalKNote* note = GetNoteByGUID(state, guid);
+    if (!note) {
+        SKN_LOG(m_parent, "Note with guid='%s' not found!", guid);
+        FinishAndReleaseMouse();
+        return;
     }
-  }
 
-  int dlgWidth = std::max(400, (int)std::round(totalWidth * 0.67));
-  int dlgHeight = std::max(300, (int)std::round(totalHeight * 0.67));
+    // Details ggf. nachladen
+    if (note->name.IsEmpty() || note->description.IsEmpty()) {
+        if (!FetchNoteDetails(note->id, *note)) {
+            SKN_LOG(m_parent, "Failed to fetch details for %s", note->id);
+            if (note->name.IsEmpty()) note->name = note->id;
+            if (note->description.IsEmpty())
+                note->description = _("Details could not be loaded.");
 
-  wxDialog* dlg = new wxDialog(m_parent->GetParentWindow(), wxID_ANY,
-                               _("SignalK Note Details"), wxDefaultPosition,
-                               wxSize(dlgWidth, dlgHeight),
-                               wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-  dlg->CenterOnScreen();  // Zentriert auf dem Bildschirm
+            // Fallback-Dialog
+            wxDialog* dlg = new wxDialog(
+                m_parent->GetParentWindow(), wxID_ANY, note->name,
+                wxDefaultPosition, wxSize(500, 400),
+                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
-  wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+            wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-  wxStaticText* title = new wxStaticText(dlg, wxID_ANY, note->name);
-  wxFont font = title->GetFont();
-  font.SetPointSize(font.GetPointSize() + 2);
-  font.SetWeight(wxFONTWEIGHT_BOLD);
-  title->SetFont(font);
-  sizer->Add(title, 0, wxALL | wxEXPAND, 10);
+            wxTextCtrl* textCtrl = new wxTextCtrl(
+                dlg, wxID_ANY, note->description, wxDefaultPosition,
+                wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
+            sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 10);
 
-  // HTML-Content vorbereiten
-  wxString htmlContent = PrepareHTMLContent(note->description, note->url);
+            wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
 
-  // Platform-spezifische Rendering
+            wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+            centerBtn->Bind(wxEVT_BUTTON,
+                [this, note, canvasIndex, dlg](wxCommandEvent&) {
+                    wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+                    double scale = 0.0;
+                    if (canvas) {
+                        scale = m_parent->m_canvasStates[canvasIndex]
+                                    .viewPort.view_scale_ppm;
+                    }
+                    dlg->EndModal(wxID_OK);
+                    if (canvas) {
+                        CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
+                    }
+                });
+            btnSizer->Add(centerBtn, 0, wxALL, 5);
+
+            btnSizer->AddStretchSpacer();
+
+            wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
+            btnSizer->Add(okBtn, 0, wxALL, 5);
+
+            sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
+
+            dlg->SetSizer(sizer);
+            dlg->ShowModal();
+            dlg->Destroy();
+
+            FinishAndReleaseMouse();
+            return;
+        }
+    }
+
+    // ============================================================
+    // 3. Vollständiger HTML-Dialog
+    // ============================================================
+    SKN_LOG(m_parent, "Found note '%s'", note->name);
+
+    int totalWidth = 0, totalHeight = 0;
+    for (const auto& pair : m_parent->m_canvasStates) {
+        if (pair.second.valid) {
+            totalWidth = std::max(totalWidth, pair.second.viewPort.pix_width);
+            totalHeight = std::max(totalHeight, pair.second.viewPort.pix_height);
+        }
+    }
+
+    int dlgWidth = std::max(400, (int)std::round(totalWidth * 0.67));
+    int dlgHeight = std::max(300, (int)std::round(totalHeight * 0.67));
+
+    wxDialog* dlg = new wxDialog(
+        m_parent->GetParentWindow(), wxID_ANY, _("SignalK Note Details"),
+        wxDefaultPosition, wxSize(dlgWidth, dlgHeight),
+        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+    dlg->CenterOnScreen();
+
+    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxStaticText* title = new wxStaticText(dlg, wxID_ANY, note->name);
+    wxFont font = title->GetFont();
+    font.SetPointSize(font.GetPointSize() + 2);
+    font.SetWeight(wxFONTWEIGHT_BOLD);
+    title->SetFont(font);
+    sizer->Add(title, 0, wxALL | wxEXPAND, 10);
+
+    wxString htmlContent = PrepareHTMLContent(note->description, note->url);
+
 #if defined(__WXMSW__) || defined(__WXMAC__)
-  // Windows & macOS: wxWebView (beste Unterstützung)
-  if (!RenderWithWebView(dlg, sizer, htmlContent)) {
-    SKN_LOG(m_parent,
-            "wxWebView not available on this system, using wxHtmlWindow");
-    RenderWithHtmlWindow(dlg, sizer, htmlContent);
-  }
+    if (!RenderWithWebView(dlg, sizer, htmlContent))
+        RenderWithHtmlWindow(dlg, sizer, htmlContent);
 #elif defined(__OCPN__ANDROID__)
-  // Android: wxHtmlWindow (wxWebView begrenzt)
-  RenderWithHtmlWindow(dlg, sizer, htmlContent);
-
-#else
-  // Linux & sonstige: Versuche wxWebView, fallback auf wxHtmlWindow
-  if (!RenderWithWebView(dlg, sizer, htmlContent)) {
-    SKN_LOG(m_parent,
-            "wxWebView not available on this system, using wxHtmlWindow");
     RenderWithHtmlWindow(dlg, sizer, htmlContent);
-  }
+#else
+    if (!RenderWithWebView(dlg, sizer, htmlContent))
+        RenderWithHtmlWindow(dlg, sizer, htmlContent);
 #endif
 
-  // Buttons
-  wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
 
-  wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+    wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+    centerBtn->Bind(wxEVT_BUTTON,
+        [this, note, canvasIndex, dlg](wxCommandEvent&) {
+            wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+            double scale = 0.0;
+            if (canvas) {
+                scale = m_parent->m_canvasStates[canvasIndex]
+                            .viewPort.view_scale_ppm;
+            }
+            dlg->EndModal(wxID_OK);
+            if (canvas) {
+                CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
+            }
+        });
+    btnSizer->Add(centerBtn, 0, wxALL, 5);
 
-  // Lambda mit canvasIndex capturen
-  centerBtn->Bind(
-      wxEVT_BUTTON, [note, canvasIndex, this, dlg](wxCommandEvent&) {
-        wxWindow* canvas = GetCanvasByIndex(canvasIndex);
-        double scale = 0.0;
-        if (canvas) {
-          scale = m_parent->m_canvasStates[canvasIndex].viewPort.view_scale_ppm;
-        }
-        // Dialog zuerst schließen
-        dlg->EndModal(wxID_OK);
-        // Dann zentrieren (nach EndModal ist dlg noch nicht destroyed)
-        if (canvas) {
-          CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
-        }
-      });
-  btnSizer->Add(centerBtn, 0, wxALL, 5);
+    btnSizer->AddStretchSpacer();
 
-  btnSizer->AddStretchSpacer();
+    wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
+    btnSizer->Add(okBtn, 0, wxALL, 5);
 
-  wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
-  btnSizer->Add(okBtn, 0, wxALL, 5);
+    sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
 
-  sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
+    dlg->SetSizer(sizer);
+    dlg->ShowModal();
+    dlg->Destroy();
 
-  dlg->SetSizer(sizer);
-
-  dlg->ShowModal();
-  dlg->Destroy();
-  dlg = nullptr;
-  m_parent->m_dialogOpen = false;
-
-  // Canvas aus potenziellem Drag-Modus befreien
-  // wxWindow* canvas = PluginGetFocusCanvas();
-  wxWindow* canvas = GetCanvasByIndex(canvasIndex);
-  if (canvas) {
-    wxMouseEvent upEvent(wxEVT_LEFT_UP);
-    upEvent.SetPosition(wxGetMousePosition());
-    canvas->GetEventHandler()->ProcessEvent(upEvent);
-  }
+    FinishAndReleaseMouse();
 }
 
 // Helper: HTML-Content vorbereiten
@@ -669,97 +773,75 @@ void tpSignalKNotesManager::RenderWithHtmlWindow(wxDialog* dlg,
 
 int tpSignalKNotesManager::FetchNotesListForCanvas(
     double centerLat, double centerLon, double maxDistance,
-    signalk_notes_opencpn_pi::CanvasState& state)
-{
-    if (m_serverHost.IsEmpty()) {
-        SKN_LOG(m_parent, _("Server host not configured"));
-        return -2;
-    }
+    signalk_notes_opencpn_pi::CanvasState& state) {
+  if (m_serverHost.IsEmpty()) {
+    SKN_LOG(m_parent, _("Server host not configured"));
+    return -2;
+  }
 
-    wxString path;
-    path.Printf("http://%s:%d/signalk/v2/api/resources/"
-                "notes?position=[%f,%f]&distance=%.0f",
-                m_serverHost.c_str(), m_serverPort,
-                centerLon, centerLat, maxDistance);
+  wxString path;
+  path.Printf(
+      "http://%s:%d/signalk/v2/api/resources/"
+      "notes?position=[%f,%f]&distance=%.0f",
+      m_serverHost.c_str(), m_serverPort, centerLon, centerLat, maxDistance);
 
-    long status = 0;
-    wxString err;
+  long status = 0;
+  wxString err;
 
-    wxString response = HttpGet(path, "", &status, &err);
+  wxString response = HttpGet(path, "", &status, &err);
 
-    if (response.IsEmpty() || status != 200) {
+  if (response.IsEmpty() || status != 200) {
+    wxString shortResp = response.Left(200);
+    if (response.Length() > 200) shortResp += "...";
 
-        wxString shortResp = response.Left(200);
-        if (response.Length() > 200)
-            shortResp += "...";
+    SKN_LOG(m_parent,
+            wxString::Format("FetchNotesList FAILED — status=%ld error=\"%s\" "
+                             "url=%s host=%s port=%d response=\"%s\"",
+                             status, err, path, m_serverHost.c_str(),
+                             m_serverPort, shortResp));
 
-        SKN_LOG(m_parent,
-            wxString::Format(
-                "FetchNotesList FAILED — status=%ld error=\"%s\" url=%s host=%s port=%d response=\"%s\"",
-                status,
-                err,
-                path,
-                m_serverHost.c_str(),
-                m_serverPort,
-                shortResp
-            )
-        );
+    return -1;
+  }
 
-        return -1;
-    }
+  int ok = ParseNotesListJSON(response, state);
 
-    int ok = ParseNotesListJSON(response, state);
+  if (ok == -1) {
+    SKN_LOG(
+        m_parent,
+        wxString::Format(
+            "FetchNotesList FAILED — JSON parse error url=%s host=%s port=%d",
+            path, m_serverHost.c_str(), m_serverPort));
+  }
 
-    if (ok == -1) {
-        SKN_LOG(m_parent,
-            wxString::Format(
-                "FetchNotesList FAILED — JSON parse error url=%s host=%s port=%d",
-                path,
-                m_serverHost.c_str(),
-                m_serverPort
-            )
-        );
-    }
-
-    return ok;
+  return ok;
 }
 
-
 bool tpSignalKNotesManager::FetchNoteDetails(const wxString& noteId,
-                                             SignalKNote& note)
-{
-    wxString path;
-    path.Printf("http://%s:%d/signalk/v2/api/resources/notes/%s",
-                m_serverHost.c_str(), m_serverPort, noteId);
+                                             SignalKNote& note) {
+  wxString path;
+  path.Printf("http://%s:%d/signalk/v2/api/resources/notes/%s",
+              m_serverHost.c_str(), m_serverPort, noteId);
 
-    long status = 0;
-    wxString err;
+  long status = 0;
+  wxString err;
 
-    wxString response = HttpGet(path, "", &status, &err);
+  wxString response = HttpGet(path, "", &status, &err);
 
-    if (response.IsEmpty() || status != 200) {
+  if (response.IsEmpty() || status != 200) {
+    // Response kürzen, damit Logs nicht explodieren
+    wxString shortResp = response.Left(200);
+    if (response.Length() > 200) shortResp += "...";
 
-        // Response kürzen, damit Logs nicht explodieren
-        wxString shortResp = response.Left(200);
-        if (response.Length() > 200)
-            shortResp += "...";
+    SKN_LOG(m_parent, wxString::Format(
+                          "FetchNoteDetails FAILED — status=%ld error=\"%s\" "
+                          "url=%s host=%s port=%d response=\"%s\"",
+                          status, err, path, m_serverHost.c_str(), m_serverPort,
+                          shortResp));
 
-        SKN_LOG(m_parent,
-            wxString::Format(
-                "FetchNoteDetails FAILED — status=%ld error=\"%s\" url=%s host=%s port=%d response=\"%s\"",
-                status,
-                err,
-                path,
-                m_serverHost.c_str(),
-                m_serverPort,
-                shortResp
-            )
-        );
+    return false;
+  }
 
-        return false;
-    }
-
-    return ParseNoteDetailsJSON(response, note);
+  return ParseNoteDetailsJSON(response, note);
 }
 
 int tpSignalKNotesManager::ParseNotesListJSON(
@@ -987,10 +1069,18 @@ void tpSignalKNotesManager::GetVisibleNotes(
     std::vector<const SignalKNote*>& outNotes) {
   wxMutexLocker lock(state.notesMutex);
 
-  outNotes.clear();
-  for (auto& pair : state.notes) {
-    const SignalKNote& note = pair.second;
-    if (note.isDisplayed) {
+  // Normale Notes (bereits per isDisplayed gefiltert)
+  for (auto& kv : state.notes) {
+    if (kv.second.isDisplayed) outNotes.push_back(&kv.second);
+  }
+
+  // Resourceset-Notes: Viewport-Check über lat/lon Grenzen
+  if (!state.valid) return;
+  const PlugIn_ViewPort& vp = state.viewPort;
+  for (auto& kv : state.resourceSetNotes) {
+    const SignalKNote& note = kv.second;
+    if (note.latitude >= vp.lat_min && note.latitude <= vp.lat_max &&
+        note.longitude >= vp.lon_min && note.longitude <= vp.lon_max) {
       outNotes.push_back(&note);
     }
   }
@@ -1058,7 +1148,7 @@ void tpSignalKNotesManager::SetIconMappings(
 
 wxString tpSignalKNotesManager::ResolveIconPath(const wxString& skIconName) {
   wxFileName fn;
-  fn.SetPath(GetPluginDataDir("signalk_notes_opencpn_pi"));
+  fn.SetPath(m_parent->m_pluginDataDir);
   fn.AppendDir("data");
   fn.AppendDir("icons");
 
@@ -1114,9 +1204,10 @@ bool tpSignalKNotesManager::RequestAuthorization() {
 
   wxHTTP http;
   http.SetTimeout(10);
-  if (!http.Connect(m_serverHost, m_serverPort)) {  
+  if (!http.Connect(m_serverHost, m_serverPort)) {
     SKN_LOG(m_parent,
-            wxString::Format("SignalK Notes Auth: Connection failed (RequestAuthorization) — host=%s port=%d",
+            wxString::Format("SignalK Notes Auth: Connection failed "
+                             "(RequestAuthorization) — host=%s port=%d",
                              m_serverHost, m_serverPort));
     return false;
   }
@@ -1239,8 +1330,9 @@ bool tpSignalKNotesManager::ValidateToken() {
   wxString response = HttpGet(url, "Authorization: Bearer " + m_authToken);
 
   if (response.IsEmpty()) {
-        SKN_LOG(m_parent,
-            wxString::Format("ValidateToken - empty or failed HTTP response — url=%s host=%s port=%d",
+    SKN_LOG(m_parent,
+            wxString::Format("ValidateToken - empty or failed HTTP response — "
+                             "url=%s host=%s port=%d",
                              url, m_serverHost.c_str(), m_serverPort));
     return false;
   }
@@ -1435,4 +1527,415 @@ wxString tpSignalKNotesManager::FixBrokenLinksInDescription(
 void tpSignalKNotesManager::InvalidateIconCache(const wxString& iconName) {
   m_parent->InvalidateBmpIconCache();
   SKN_LOG(m_parent, "Icon cache invalidated for: %s", iconName);
+}
+
+// Ignorierte Standard-Resourceset-Typen
+static const std::set<wxString> s_ignoredResourceSets = {
+    "charts", "routes", "notes", "regions", "infolayers", "groups", "tracks","waypoints"};
+
+bool tpSignalKNotesManager::FetchAvailableResourceSets(
+    std::set<wxString>& outResourceSets) {
+  outResourceSets.clear();
+
+  wxHTTP http;
+  http.SetHeader("Content-type", "application/json");
+  http.SetTimeout(10);
+
+  if (!http.Connect(m_serverHost, m_serverPort)) {
+    SKN_LOG(m_parent,
+            "FetchAvailableResourceSets: Verbindung fehlgeschlagen zu %s:%d",
+            m_serverHost, m_serverPort);
+    return false;
+  }
+
+  wxString path = "/signalk/v2/api/resources";
+  wxInputStream* stream = http.GetInputStream(path);
+  if (!stream || http.GetError() != wxPROTO_NOERR) {
+    wxDELETE(stream);
+    return false;
+  }
+
+  wxStringOutputStream out;
+  stream->Read(out);
+  wxDELETE(stream);
+
+  wxString json = out.GetString();
+  wxJSONReader reader;
+  wxJSONValue root;
+  if (reader.Parse(json, &root) != 0) return false;
+
+  wxArrayString keys = root.GetMemberNames();
+  for (size_t i = 0; i < keys.GetCount(); i++) {
+    wxString key = keys[i];
+    if (s_ignoredResourceSets.find(key) == s_ignoredResourceSets.end()) {
+      outResourceSets.insert(key);
+      SKN_LOG(m_parent, "FetchAvailableResourceSets: Gefunden: %s", key);
+    }
+  }
+
+  return !outResourceSets.empty();
+}
+
+bool tpSignalKNotesManager::IsValidResourceSet(wxJSONValue rsJson) {
+  if (!rsJson.HasMember("type")) return false;
+  if (rsJson["type"].AsString() != "ResourceSet") return false;
+  if (!rsJson.HasMember("values")) return false;
+  if (!rsJson["values"].HasMember("features")) return false;
+  if (!rsJson["values"]["features"].IsArray()) return false;
+
+  wxJSONValue features = rsJson["values"]["features"];
+  for (int i = 0; i < features.Size(); i++) {
+    wxJSONValue f = features[i];
+    if (!f.HasMember("geometry")) continue;
+    if (!f["geometry"].HasMember("type")) continue;
+    if (f["geometry"]["type"].AsString() != "Point") continue;
+    if (!f["geometry"].HasMember("coordinates")) continue;
+    if (!f["geometry"]["coordinates"].IsArray()) continue;
+    if (f["geometry"]["coordinates"].Size() < 2) continue;
+    if (!f.HasMember("properties")) continue;
+    if (!f["properties"].HasMember("name")) continue;
+    return true;
+  }
+  return false;
+}
+
+int tpSignalKNotesManager::ParseResourceSetJSON(
+    const wxString& json, const wxString& resourceSetName,
+    signalk_notes_opencpn_pi::CanvasState& state,
+    const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+        configuredSubs,
+    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+        outDiscoveredSubs) {
+  wxJSONReader reader;
+  wxJSONValue root;
+  if (reader.Parse(json, &root) != 0) {
+    SKN_LOG(m_parent, "ParseResourceSetJSON: JSON-Fehler für %s",
+            resourceSetName);
+    return 0;
+  }
+
+  // Neue Notes aus diesem Abruf sammeln
+  std::map<wxString, SignalKNote> newNotes;
+
+  wxArrayString uuids = root.GetMemberNames();
+  for (size_t i = 0; i < uuids.GetCount(); i++) {
+    wxString uuid = uuids[i];
+    wxJSONValue rsEntry = root[uuid];
+
+    if (!IsValidResourceSet(rsEntry)) {
+      SKN_LOG(m_parent,
+              "ParseResourceSetJSON: Überspringe ungültiges Unter-RS %s", uuid);
+      continue;
+    }
+
+    wxString subName = rsEntry["name"].AsString();
+
+    // Unter-Resourceset als entdeckt markieren (für Config-Dialog)
+    if (outDiscoveredSubs.find(subName) == outDiscoveredSubs.end()) {
+      signalk_notes_opencpn_pi::SubResourceSetConfig cfg;
+      cfg.name = subName;
+      cfg.enabled = false;
+      // Übernehme ggf. vorhandene Konfiguration
+      auto it = configuredSubs.find(subName);
+      if (it != configuredSubs.end()) {
+        cfg.enabled = it->second.enabled;
+        cfg.iconName = it->second.iconName;
+      }
+      outDiscoveredSubs[subName] = cfg;
+    }
+
+    // Prüfe ob dieses Unter-Resourceset aktiviert ist
+    auto cfgIt = configuredSubs.find(subName);
+    bool subEnabled = (cfgIt != configuredSubs.end() && cfgIt->second.enabled);
+    wxString iconName =
+        (cfgIt != configuredSubs.end()) ? cfgIt->second.iconName : wxString("");
+
+    if (!subEnabled) continue;
+
+    wxJSONValue features = rsEntry["values"]["features"];
+    for (int j = 0; j < features.Size(); j++) {
+      wxJSONValue feat = features[j];
+      if (!feat.HasMember("geometry") || !feat.HasMember("properties"))
+        continue;
+
+      wxJSONValue geom = feat["geometry"];
+      wxJSONValue props = feat["properties"];
+
+      if (geom["type"].AsString() != "Point") continue;
+      wxJSONValue coords = geom["coordinates"];
+      if (coords.Size() < 2) continue;
+
+      double lon = coords[0].AsDouble();
+      double lat = coords[1].AsDouble();
+      wxString name =
+          props.HasMember("name") ? props["name"].AsString() : _("Unknown");
+      wxString desc = props.HasMember("description")
+                          ? props["description"].AsString()
+                          : wxString("");
+
+      // GUID: stabil und eindeutig pro Eintrag
+      wxString guid =
+          wxString::Format("RS_%s_%s_%d", resourceSetName, subName, j);
+
+      SignalKNote note;
+      note.GUID = guid;
+      note.id = guid;
+      note.name = name;
+      note.description = desc;
+      note.latitude = lat;
+      note.longitude = lon;
+      note.iconName = iconName;
+      note.source =
+          wxString::Format("resourceset:%s:%s", resourceSetName, subName);
+      note.isDisplayed = true;
+
+      newNotes[guid] = note;
+    }
+  }
+
+  // Änderungscheck: Vergleiche mit bisherigen resourceSetNotes
+  wxMutexLocker lock(state.notesMutex);
+
+// Alte RS-Notes für dieses resourceSet entfernen - NUR wenn newNotes gefüllt
+  // ODER wenn das Resourceset explizit deaktiviert wurde
+  std::vector<wxString> toRemove;
+  for (auto& kv : state.resourceSetNotes) {
+    if (kv.second.source.StartsWith(
+            wxString::Format("resourceset:%s:", resourceSetName))) {
+      toRemove.push_back(kv.first);
+    }
+  }
+
+  // Nur löschen wenn neue Notes vorhanden ODER wenn bewusst alle deaktiviert
+  if (!newNotes.empty() || configuredSubs.empty()) {
+    for (auto& guid : toRemove) state.resourceSetNotes.erase(guid);
+    for (auto& kv : newNotes) state.resourceSetNotes[kv.first] = kv.second;
+  }
+  // Wenn newNotes leer UND configuredSubs nicht leer: Fetch hat wahrscheinlich
+  // gefehlt → alte Notes behalten
+
+  bool changed = (toRemove.size() != newNotes.size());
+  if (!changed) {
+    for (auto& kv : newNotes) {
+      if (state.resourceSetNotes.find(kv.first) ==
+          state.resourceSetNotes.end()) {
+        changed = true;
+        break;
+      }
+    }
+  }
+
+  int count = (int)newNotes.size();
+  SKN_LOG(m_parent, "ParseResourceSetJSON: %s → %d Notes geladen (changed=%d)",
+          resourceSetName, count, (int)changed);
+  return count;
+}
+
+static wxString EncodeResourceSetName(const wxString& name) {
+  wxString encoded = name;
+  encoded.Replace("ä", "%C3%A4");
+  encoded.Replace("ö", "%C3%B6");
+  encoded.Replace("ü", "%C3%BC");
+  encoded.Replace("Ä", "%C3%84");
+  encoded.Replace("Ö", "%C3%96");
+  encoded.Replace("Ü", "%C3%9C");
+  encoded.Replace("ß", "%C3%9F");
+  encoded.Replace(" ", "%20");
+  encoded.Replace("é", "%C3%A9");
+  encoded.Replace("è", "%C3%A8");
+  encoded.Replace("à", "%C3%A0");
+  return encoded;
+}
+
+// Prüft ob ein JSON-Root ein "flaches" Resourceset ist (UUID → einzelne Notes)
+// Rückgabe: true wenn mindestens ein Eintrag feature.geometry.type == "Point" hat
+static bool IsFlatResourceSet(wxJSONValue root) {
+  if (!root.IsObject()) return false;
+  wxArrayString keys = root.GetMemberNames();
+  for (size_t i = 0; i < keys.GetCount(); i++) {
+    wxJSONValue entry = root[keys[i]];
+    if (!entry.IsObject()) continue;
+    if (!entry.HasMember("feature")) continue;
+    wxJSONValue feat = entry["feature"];
+    if (!feat.HasMember("geometry")) continue;
+    if (!feat["geometry"].HasMember("type")) continue;
+    if (feat["geometry"]["type"].AsString() != "Point") continue;
+    if (!feat["geometry"].HasMember("coordinates")) continue;
+    if (!feat["geometry"]["coordinates"].IsArray()) continue;
+    if (feat["geometry"]["coordinates"].Size() < 2) continue;
+    return true;
+  }
+  return false;
+}
+
+bool tpSignalKNotesManager::FetchResourceSet(
+    const wxString& resourceSetName,
+    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outDiscoveredSubs,
+    signalk_notes_opencpn_pi::CanvasState& state,
+    const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& configuredSubs)
+{
+  wxString url = wxString::Format("http://%s:%d/signalk/v2/api/resources/%s",
+                                  m_serverHost, m_serverPort,
+                                  EncodeResourceSetName(resourceSetName));
+  wxString authHeader;
+  if (!m_authToken.IsEmpty())
+    authHeader = "Authorization: Bearer " + m_authToken;
+
+  wxString json = HttpGet(url, authHeader);
+  if (json.IsEmpty()) {
+    SKN_LOG(m_parent, "FetchResourceSet: Kein Ergebnis für %s", resourceSetName);
+    return false;
+  }
+
+  // Struktur erkennen: hierarchisch (values.features) oder flach (UUID → Note)?
+  wxJSONReader reader;
+  wxJSONValue root;
+  if (reader.Parse(json, &root) != 0) return false;
+
+  if (IsFlatResourceSet(root)) {
+    // Flaches Resourceset: das gesamte RS ist ein einzelnes "Unter-RS"
+    // Eintrag mit dem RS-Namen selbst als Sub-Name anlegen
+    wxString subName = resourceSetName;
+    if (outDiscoveredSubs.find(subName) == outDiscoveredSubs.end()) {
+      signalk_notes_opencpn_pi::SubResourceSetConfig cfg;
+      cfg.name = subName;
+      cfg.enabled = false;
+      auto it = configuredSubs.find(subName);
+      if (it != configuredSubs.end()) {
+        cfg.enabled = it->second.enabled;
+        cfg.iconName = it->second.iconName;
+      }
+      outDiscoveredSubs[subName] = cfg;
+    }
+
+    // Nur laden wenn aktiviert
+    auto cfgIt = configuredSubs.find(subName);
+    if (cfgIt != configuredSubs.end() && cfgIt->second.enabled) {
+      ParseFlatResourceSetJSON(json, resourceSetName, state, cfgIt->second);
+    }
+  } else {
+    // Hierarchisches Resourceset: normale Verarbeitung
+    ParseResourceSetJSON(json, resourceSetName, state, configuredSubs, outDiscoveredSubs);
+  }
+
+  return true;
+}
+
+bool tpSignalKNotesManager::DiscoverSubResourceSets(
+    const wxString& resourceSetName,
+    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outSubs)
+{
+  wxString url = wxString::Format("http://%s:%d/signalk/v2/api/resources/%s",
+                                  m_serverHost, m_serverPort,
+                                  EncodeResourceSetName(resourceSetName));
+  wxString authHeader;
+  if (!m_authToken.IsEmpty())
+    authHeader = "Authorization: Bearer " + m_authToken;
+
+  wxString json = HttpGet(url, authHeader);
+  if (json.IsEmpty()) return false;
+
+  wxJSONReader reader;
+  wxJSONValue root;
+  if (reader.Parse(json, &root) != 0) return false;
+
+  if (IsFlatResourceSet(root)) {
+    // Flaches RS: nur ein Eintrag mit dem RS-Namen selbst
+    if (outSubs.find(resourceSetName) == outSubs.end()) {
+      signalk_notes_opencpn_pi::SubResourceSetConfig cfg;
+      cfg.name = resourceSetName;
+      cfg.enabled = false;
+      outSubs[resourceSetName] = cfg;
+    }
+  } else {
+    // Hierarchisches RS: Unter-RS-Namen sammeln
+    wxArrayString uuids = root.GetMemberNames();
+    for (size_t i = 0; i < uuids.GetCount(); i++) {
+      wxJSONValue entry = root[uuids[i]];
+      if (!IsValidResourceSet(entry)) continue;
+      wxString subName = entry["name"].AsString();
+      if (outSubs.find(subName) == outSubs.end()) {
+        signalk_notes_opencpn_pi::SubResourceSetConfig cfg;
+        cfg.name = subName;
+        cfg.enabled = false;
+        outSubs[subName] = cfg;
+      }
+    }
+  }
+
+  return !outSubs.empty();
+}
+
+int tpSignalKNotesManager::ParseFlatResourceSetJSON(
+    const wxString& json,
+    const wxString& resourceSetName,
+    signalk_notes_opencpn_pi::CanvasState& state,
+    const signalk_notes_opencpn_pi::SubResourceSetConfig& config)
+{
+  wxJSONReader reader;
+  wxJSONValue root;
+  if (reader.Parse(json, &root) != 0) return 0;
+
+  std::map<wxString, SignalKNote> newNotes;
+
+  wxArrayString uuids = root.GetMemberNames();
+  for (size_t i = 0; i < uuids.GetCount(); i++) {
+    wxJSONValue entry = root[uuids[i]];
+    if (!entry.IsObject()) continue;
+    if (!entry.HasMember("feature")) continue;
+
+    wxJSONValue feat = entry["feature"];
+    if (!feat.HasMember("geometry") || !feat.HasMember("properties")) continue;
+
+    wxJSONValue geom = feat["geometry"];
+    if (geom["type"].AsString() != "Point") continue;
+    wxJSONValue coords = geom["coordinates"];
+    if (coords.Size() < 2) continue;
+
+    double lon = coords[0].AsDouble();
+    double lat = coords[1].AsDouble();
+
+    wxJSONValue props = feat["properties"];
+    wxString name = props.HasMember("name") ? props["name"].AsString()
+                  : entry.HasMember("name") ? entry["name"].AsString()
+                  : _("Unknown");
+    wxString desc = entry.HasMember("description") ? entry["description"].AsString()
+                  : props.HasMember("description") ? props["description"].AsString()
+                  : wxString("");
+
+    wxString guid = wxString::Format("RSF_%s_%s", resourceSetName, uuids[i]);
+
+    SignalKNote note;
+    note.GUID = guid;
+    note.id = guid;
+    note.name = name;
+    note.description = desc;
+    note.latitude = lat;
+    note.longitude = lon;
+    note.iconName = config.iconName;
+    note.source = wxString::Format("resourceset:%s:%s", resourceSetName, resourceSetName);
+    note.isDisplayed = true;
+
+    newNotes[guid] = note;
+  }
+
+  // Änderungscheck und Speichern (analog zu ParseResourceSetJSON)
+  wxMutexLocker lock(state.notesMutex);
+
+  std::vector<wxString> toRemove;
+  for (auto& kv : state.resourceSetNotes) {
+    if (kv.second.source == wxString::Format("resourceset:%s:%s",
+                                              resourceSetName, resourceSetName))
+      toRemove.push_back(kv.first);
+  }
+
+// Nur löschen+ersetzen wenn tatsächlich Daten geladen wurden
+  if (!newNotes.empty()) {
+    for (auto& guid : toRemove) state.resourceSetNotes.erase(guid);
+    for (auto& kv : newNotes) state.resourceSetNotes[kv.first] = kv.second;
+  }
+  
+  SKN_LOG(m_parent, "ParseFlatResourceSetJSON: %s → %d Notes", resourceSetName,
+          (int)newNotes.size());
+  return (int)newNotes.size();
 }

@@ -2,7 +2,9 @@
 
 The **SignalK Notes Plugin** enhances OpenCPN by displaying **notes stored on a SignalK server directly on the nautical chart**. It is especially useful in setups where SignalK already acts as the central data hub.
 
-The plugin shows notes as icons on the chart and updates them automatically whenever data on the SignalK server changes.
+The plugin shows notes as icons on the chart and updates them automatically (at a configurable time interval) whenever data on the SignalK server changes.
+
+Notes are technically either direct notes in SignalK or notes stored in SignalK CUSTOM resourcessets (not build in resourcessets!).
 
 If there are too many notes in one place, they will be clustered (shown as a circle with the number of notes) and will only become visible at a smaller scale.
 
@@ -15,6 +17,7 @@ Several SignalK plugins (like ['Garmin Active Captain Resources'](https://active
 
 ### • Display SignalK Notes on the Chart
 The plugin reads notes from SignalK and displays them as icons at their respective positions on the map.
+Notes are created from either SignalK's notes or other SignalK`s CUSTOM resourcesets (configured in SignalK standard plugin resources provider).
 
 ### • Automatic Updates
 New or modified notes are detected automatically and refreshed on the chart. The update interval can be configured.
@@ -64,7 +67,13 @@ As soon as the request has been approved the valid connection is displayed in Si
 - Assign icons to specific note types  
 - Choose from the included icon set  
 
-### 4. Display Settings and debug log
+### 4. Resourcesset
+- Enable resourcesets to display on the map
+- Assign icons to resourcessets
+
+<img src="docs/images/configuration4.png" width="75%">
+
+### 5. Display Settings and debug log
 - Adjust icon size for single notes  
 - Adjust icon size, colour, font for cluster 
 - Determine the maximum scale up to which clusters are broken down into individual notes

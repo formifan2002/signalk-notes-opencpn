@@ -1,0 +1,158 @@
+﻿:imagesdir: ../images/
+= SignalK Notes Plugin for OpenCPN
+
+The *SignalK Notes Plugin* enhances OpenCPN by displaying *notes stored on a SignalK server directly on the nautical chart*.  
+It is especially useful in setups where SignalK already acts as the central data hub.
+
+The plugin shows notes as icons on the chart and updates them automatically (at a configurable time interval) whenever data on the SignalK server changes.
+
+Notes are technically either direct notes in SignalK or notes stored in SignalK CUSTOM resourcesets (not built‑in resourcesets).
+
+If there are too many notes in one place, they will be clustered (shown as a circle with the number of notes) and will only become visible at a smaller scale.
+
+Several SignalK plugins (like https://activecaptain.garmin.com/en-US/map[Garmin Active Captain Resources] or https://www.eurisportal.eu/[EuRIS]) create notes and enrich the skipper’s information.
+
+image::map1.png[width=75%]
+image::map-detail1.png[width=75%]
+
+== Features
+
+=== • Display SignalK Notes on the Chart
+The plugin reads notes from SignalK and displays them as icons at their respective positions on the map.  
+Notes are created from either SignalK’s notes or other SignalK CUSTOM resourcesets (configured in the SignalK standard plugin resources provider).
+
+=== • Automatic Updates
+New or modified notes are detected automatically and refreshed on the chart.  
+The update interval can be configured.
+
+=== • Selectable SignalK Providers
+If multiple SignalK data sources (providers) are available, you can choose which ones the plugin should use/show on the map.
+
+image::configuration1.png[width=75%]
+
+=== • Customizable Icons
+Each note type can be assigned its own icon.  
+Icon mappings can be configured in the settings dialog.
+
+image::configuration2.png[width=75%]
+
+=== • SignalK Authentication Support
+The plugin supports authentication for SignalK servers that require login credentials.  
+The current authentication status is shown in the settings dialog.
+
+== Prerequisite
+
+The plugin will only work with a valid SignalK data connection configured in OpenCPN!
+
+image::dataconnection.png[width=75%]
+
+== Configuration
+
+Open the settings dialog via the toolbar or via:
+
+*OpenCPN → Options → Plugins → SignalK Notes → Preferences*
+
+The dialog includes the following sections:
+
+=== 1. SignalK Authentication
+
+Authentication in SignalK is not mandatory.
+
+If it is present:
+
+1. Providers will be automatically deleted if the plugin has been deleted in SignalK or is no longer active.  
+2. The name of the plugin and the description will be displayed instead of the plugin ID.
+
+Authentication is requested via the *SignalK authentication* button on the *Provider* tab.
+
+The request should be approved in SignalK under:
+
+*Security → Access requests*  
+with  
+*Permission*: Admin  
+*Authentication Timeout*: NEVER
+
+Once approved, the valid connection is shown in SignalK under *Security → Devices*  
+(with description *OpenCPN SignalK Notes Plugin*)  
+and in the plugin on the *Provider* tab.
+
+=== 2. Provider Selection
+
+- List of discovered SignalK providers  
+- Enable or disable individual sources/providers  
+- Determine how often the SignalK API will be called  
+
+=== 3. Icon Mapping
+
+- Assign icons to specific note types  
+- Choose from the included icon set  
+
+=== 4. Resourcesets
+
+- Enable resourcesets to display on the map  
+- Assign icons to resourcesets  
+
+image::configuration4.png[width=75%]
+
+=== 5. Display Settings and Debug Log
+
+- Adjust icon size for single notes  
+- Adjust icon size, colour, font for clusters  
+- Determine the maximum scale up to which clusters are broken down into individual notes  
+- Determine the minimum scale at which notes will be displayed on the map  
+- Detailed debug logging for the plugin in the `opencpn.log` file is possible via a checkbox  
+  (should only be activated temporarily when real problems occur)
+
+image::configuration3.png[width=75%]
+
+== Hints
+
+If emojis (like 📐 or 🕐) do not appear in Note details, install:
+
+sudo apt install fonts-noto-color-emoji
+sudo fc-cache -fv
+
+
+== Installation
+
+The plugin can be installed like any other OpenCPN plugin:
+
+1. Through the OpenCPN plugin manager  
+2. Or by compiling from source  
+3. After installation, a new toolbar button will appear  
+
+== License
+
+This plugin is released under the *GNU General Public License, Version 2 (GPLv2)*.  
+You may use, modify, and redistribute the plugin under the terms of this license.
+
+=== Included Icon Licenses
+
+==== freeboard-sk Icons (Apache License 2.0)
+
+Some icons originate from the https://github.com/SignalK/freeboard-sk[*freeboard-sk*] project.  
+They are licensed under the *Apache License 2.0*.
+
+==== OpenCPN Standard Icons (GPLv2)
+
+Some icons are based on or derived from OpenCPN’s standard icon set, licensed under *GPLv2*.
+
+=== License Compatibility
+
+Because GPLv2 is the stricter license, it governs the overall plugin.  
+All included assets are compatible with GPLv2.
+
+== Hosting
+
+image:https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square[Hosted by Cloudsmith,link=https://cloudsmith.com]
+
+=== Cloudsmith Repositories
+
+🔧 *Alpha*  
+https://app.cloudsmith.com/formifan2002/r/signalk-notes-opencpn-alpha
+
+🧪 *Beta*  
+https://app.cloudsmith.com/formifan2002/r/signalk-notes-opencpn-beta
+
+🚀 *Stable*  
+https://app.cloudsmith.com/formifan2002/r/signalk-notes-opencpn-prod

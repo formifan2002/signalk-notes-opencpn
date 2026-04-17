@@ -18,6 +18,7 @@
 #include <wx/string.h>
 #include <vector>
 #include <map>
+#include <set> 
 
 class tpicons;
 class tpSignalKNotesManager;
@@ -44,6 +45,32 @@ public:
     std::vector<wxString> noteIds;
     double targetLat = 0.0;
     double targetLon = 0.0;
+  };
+
+  // ---------------------------------------------------------
+  // RESOURCESET-STRUKTUREN
+  // ---------------------------------------------------------
+  struct ResourceSetEntry {
+    wxString name;         // aus properties.name
+    wxString description;  // aus properties.description (bereits als Detail
+                           // vorhanden)
+    double latitude;
+    double longitude;
+    wxString subResourceSetName;  // Name des Unter-Resourcesets
+    wxString resourceSetName;     // Name des Haupt-Resourcesets (z.B. "Funk")
+    wxString GUID;  // generiert: "RS_<resourceSetName>_<subName>_<index>"
+  };
+
+  struct SubResourceSetConfig {
+    wxString name;  // Name des Unter-Resourcesets
+    bool enabled = false;
+    wxString iconName;  // gewähltes Icon (Dateiname ohne .svg)
+  };
+
+  struct ResourceSetConfig {
+    wxString name;  // Name des Haupt-Resourcesets (z.B. "Funk")
+    bool enabled = false;
+    std::map<wxString, SubResourceSetConfig> subSets;  // subName -> config
   };
 
   // Bitmap-Erzeugung / GL-Vorbereitung
@@ -97,9 +124,11 @@ public:
     double lastFetchCenterLon = 0.0;
     double lastFetchDistance = 0.0;
     wxLongLong lastFetchTime = 0;
+    wxLongLong lastRSFetchTime = 0;
     std::map<wxString, SignalKNote> notes;
     mutable wxMutex notesMutex;  // Schützt notes
     ClusterZoomState clusterZoom;
+    std::map<wxString, SignalKNote> resourceSetNotes;
   };
   std::map<int, CanvasState> m_canvasStates;
 
@@ -148,6 +177,15 @@ public:
   virtual void SetCurrentViewPort(PlugIn_ViewPort& vp) override;
   int m_activeCanvasIndex = 0;
   bool m_dialogOpen = false;
+  // Resourceset-Konfiguration
+  std::map<wxString, ResourceSetConfig>
+      m_resourceSetConfigs;                    // resourceSetName -> config
+  std::map<wxString, ResourceSetConfig> m_resourceSetConfigsBackup;
+
+  void SaveResourceSetConfig(wxFileConfig* pConf);
+  void LoadResourceSetConfig(wxFileConfig* pConf);
+  wxString m_pluginDataDir;
+
 
 private:
   bool DoRenderCommon(PlugIn_ViewPort* vp, int canvasIndex, int priority);
@@ -194,6 +232,8 @@ private:
   bool m_debugMode = false;
   double m_prevChartScale = -1;
   wxPoint m_mouseDownPos;
+  std::set<wxString> m_availableResourceSets;
+
 };
 
 int ComputeScale(const PlugIn_ViewPort& vp);

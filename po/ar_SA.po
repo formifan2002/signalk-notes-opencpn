@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 08:53+0100\n"
+"POT-Creation-Date: 2026-03-31 10:41+0200\n"
 "PO-Revision-Date: 2023-10-04 18:33\n"
 "Last-Translator: \n"
 "Language-Team: Arabic\n"
@@ -10,88 +10,97 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 && n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
 "X-Crowdin-Language: ar\n"
-"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/signalk_notes_opencpn_pi.pot\n"
+"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/"
+"signalk_notes_opencpn_pi.pot\n"
 "X-Crowdin-File-ID: 344\n"
 
 #: src/tpConfigDialog.cpp:123
 msgid "API update interval (minutes)"
 msgstr "فاصل تحديث واجهة البرمجة (بالدقائق)"
 
-#: src/tpConfigDialog.cpp:927
+#: src/tpConfigDialog.cpp:932
 msgid "Advanced debug logging in opencpn.log"
 msgstr "تسجيل تصحيح متقدم في ملف opencpn.log"
 
-#: src/tpConfigDialog.cpp:709
+#. Auth-Button deaktiviert mit neuem Text
+#: src/tpConfigDialog.cpp:714
 msgid "Authentication in progress..."
 msgstr "جاري تنفيذ عملية المصادقة..."
 
-#: src/tpConfigDialog.cpp:187
+#: src/tpConfigDialog.cpp:191
 msgid "Cancel"
 msgstr "إلغاء"
 
-#: src/tpConfigDialog.cpp:180
+#: src/tpConfigDialog.cpp:184
 msgid "Cancel authentication"
 msgstr "إلغاء المصادقة"
 
-#: src/tpSignalKNotes.cpp:428
+#: src/tpSignalKNotes.cpp:497 src/tpSignalKNotes.cpp:562
+#: src/tpSignalKNotes.cpp:639
 msgid "Center on map"
 msgstr "توسيط على الخريطة"
 
-#: src/tpConfigDialog.cpp:868 src/tpConfigDialog.cpp:875
+#: src/tpConfigDialog.cpp:873 src/tpConfigDialog.cpp:880
 msgid "Circle color:"
 msgstr "لون الدائرة:"
 
-#: src/tpConfigDialog.cpp:860
+#: src/tpConfigDialog.cpp:865
 msgid "Cluster radius (px):"
 msgstr "نصف قطر التجميع (بالبكسل):"
 
-#: src/tpConfigDialog.cpp:846
+#: src/tpConfigDialog.cpp:851
 msgid "Cluster settings"
 msgstr "إعدادات التجميع"
 
-#: src/tpConfigDialog.cpp:852
+#: src/tpConfigDialog.cpp:857
 msgid "Cluster size (px):"
 msgstr "حجم التجميع (بالبكسل):"
 
-#: src/tpConfigDialog.cpp:161
+#: src/tpConfigDialog.cpp:165
 msgid "Deciption"
 msgstr "الوصف"
 
-#: src/tpSignalKNotes.cpp:367
+#: src/tpSignalKNotes.cpp:545
 msgid "Details could not be loaded."
 msgstr "تعذّر تحميل التفاصيل."
 
-#: src/tpConfigDialog.cpp:556
+#: src/tpConfigDialog.cpp:1073
+msgid "Enable resource sets and choose an icon for the chart display."
+msgstr ""
+
+#: src/tpConfigDialog.cpp:561
 msgid "Error"
 msgstr "خطأ"
 
-#: src/tpConfigDialog.cpp:553
+#: src/tpConfigDialog.cpp:558
 msgid ""
 "Error requesting authentication. Are there still 'access requests' in "
 "SignalK? If yes, delete/reject them."
 msgstr ""
-"حدث خطأ أثناء طلب المصادقة. هل لا تزال هناك \"طلبات وصول\" في SignalK؟ "
-"إذا كانت موجودة، يرجى حذفها أو رفضها."
+"حدث خطأ أثناء طلب المصادقة. هل لا تزال هناك \"طلبات وصول\" في SignalK؟ إذا "
+"كانت موجودة، يرجى حذفها أو رفضها."
 
 #: src/tpicons.cpp:71
 msgid ""
 "Failed to load all signalk_notes_opencpn_pi icons, check OCPN log for details"
 msgstr ""
-"فشل تحميل جميع أيقونات signalk_notes_opencpn_pi. يرجى مراجعة سجل OCPN لمزيد من التفاصيل."
+"فشل تحميل جميع أيقونات signalk_notes_opencpn_pi. يرجى مراجعة سجل OCPN لمزيد "
+"من التفاصيل."
 
-#: src/tpSignalKNotes.cpp:751
+#: src/tpSignalKNotes.cpp:978
 msgid "Failed to parse note details JSON"
 msgstr "فشل تحليل JSON لتفاصيل الملاحظة"
 
-#: src/tpSignalKNotes.cpp:627
+#: src/tpSignalKNotes.cpp:854
 msgid "Failed to parse notes list JSON"
 msgstr "فشل تحليل JSON لقائمة الملاحظات"
 
-#: src/tpConfigDialog.cpp:881
+#: src/tpConfigDialog.cpp:886
 msgid "Font size"
 msgstr "حجم الخط"
 
@@ -99,20 +108,20 @@ msgstr "حجم الخط"
 msgid "Icon mapping"
 msgstr "تعيين الأيقونات"
 
-#: src/tpConfigDialog.cpp:821
+#: src/tpConfigDialog.cpp:826
 msgid "Icon settings"
 msgstr "إعدادات الأيقونات"
 
-#: src/tpConfigDialog.cpp:827
+#: src/tpConfigDialog.cpp:832
 msgid "Icon size (px):"
 msgstr "حجم الأيقونة (بالبكسل):"
 
-#: src/tpConfigDialog.cpp:528
+#: src/tpConfigDialog.cpp:533
 #, c-format
 msgid "Icons in the left map area: %d"
 msgstr "الأيقونات في الجزء الأيسر من الخريطة: %d"
 
-#: src/tpConfigDialog.cpp:517
+#: src/tpConfigDialog.cpp:522
 #, c-format
 msgid "Icons in the map area: %d"
 msgstr "الأيقونات في منطقة الخريطة: %d"
@@ -121,20 +130,20 @@ msgstr "الأيقونات في منطقة الخريطة: %d"
 msgid "Icons in the map area: 0"
 msgstr "الأيقونات في منطقة الخريطة: 0"
 
-#: src/tpConfigDialog.cpp:530
+#: src/tpConfigDialog.cpp:535
 #, c-format
 msgid "Icons in the right map area: %d"
 msgstr "الأيقونات في الجزء الأيمن من الخريطة: %d"
 
-#: src/tpConfigDialog.cpp:545
+#: src/tpConfigDialog.cpp:550
 msgid ""
 "In SignalK, please confirm the request in the menu item 'Access Requests' "
 "with 'Permission' Admin and 'Authentication Timeout' NEVER."
 msgstr ""
-"في SignalK، يرجى تأكيد الطلب في قائمة \"طلبات الوصول\" "
-"باختيار إذن \"Admin\" وضبط \"مهلة المصادقة\" على NEVER."
+"في SignalK، يرجى تأكيد الطلب في قائمة \"طلبات الوصول\" باختيار إذن \"Admin\" "
+"وضبط \"مهلة المصادقة\" على NEVER."
 
-#: src/signalk_notes_opencpn_pi.cpp:737
+#: src/signalk_notes_opencpn_pi.cpp:773
 msgid "Invalid host or port values in DataConnections."
 msgstr "قيمة المضيف أو المنفذ غير صالحة في DataConnections."
 
@@ -142,26 +151,26 @@ msgstr "قيمة المضيف أو المنفذ غير صالحة في DataConne
 msgid "Map SignalK icons to plugin icons:"
 msgstr "ربط أيقونات SignalK بأيقونات الإضافة:"
 
-#: src/tpConfigDialog.cpp:903
+#: src/tpConfigDialog.cpp:908
 msgid "Maximum scale for cluster 1:"
 msgstr "الحد الأقصى للمقياس للتجميع 1:"
 
-#: src/tpConfigDialog.cpp:1041
+#: src/tpConfigDialog.cpp:1046
 msgid "Maximum scale must be at least 800."
 msgstr "يجب أن يكون الحد الأقصى للمقياس 800 على الأقل."
 
-#: src/tpConfigDialog.cpp:1044
+#: src/tpConfigDialog.cpp:1049
 msgid ""
 "Maximum scale must be smaller than minimum scale (or minimum scale = 0)."
 msgstr ""
-"يجب أن يكون الحد الأقصى للمقياس أصغر من الحد الأدنى للمقياس "
-"(أو أن يكون الحد الأدنى للمقياس = 0)."
+"يجب أن يكون الحد الأقصى للمقياس أصغر من الحد الأدنى للمقياس (أو أن يكون الحد "
+"الأدنى للمقياس = 0)."
 
-#: src/tpConfigDialog.cpp:912
+#: src/tpConfigDialog.cpp:917
 msgid "Minimum scale for cluster 1:"
 msgstr "الحد الأدنى للمقياس للتجميع 1:"
 
-#: src/signalk_notes_opencpn_pi.cpp:693
+#: src/signalk_notes_opencpn_pi.cpp:729
 msgid ""
 "No DataConnections entry found.\n"
 "Please check your OpenCPN settings."
@@ -169,30 +178,29 @@ msgstr ""
 "لم يتم العثور على أي إدخال DataConnections.\n"
 "يرجى التحقق من إعدادات OpenCPN."
 
-#: src/signalk_notes_opencpn_pi.cpp:727
+#: src/signalk_notes_opencpn_pi.cpp:763
 msgid ""
 "No matching NMEA SignalK connection found.\n"
 "Please add a connection for SignalK in OpenCPN."
 msgstr ""
-"لم يتم العثور على اتصال NMEA متوافق مع SignalK."
-"يرجى إضافة اتصال لـ SignalK في OpenCPN."
+"لم يتم العثور على اتصال NMEA متوافق مع SignalK.يرجى إضافة اتصال لـ SignalK "
+"في OpenCPN."
 
-#: src/tpConfigDialog.cpp:379
+#: src/tpConfigDialog.cpp:382
 msgid "Note: No providers configured yet. Move the map to discover providers."
-msgstr ""
-"ملاحظة: لم يتم إعداد أي مزود حتى الآن. حرّك الخريطة لاكتشاف المزودين."
+msgstr "ملاحظة: لم يتم إعداد أي مزود حتى الآن. حرّك الخريطة لاكتشاف المزودين."
 
 #: src/tpConfigDialog.cpp:92
 msgid "Note: Providers are discovered as you move the map."
-msgstr ""
-"ملاحظة: يتم اكتشاف المزودين أثناء تحريك الخريطة."
+msgstr "ملاحظة: يتم اكتشاف المزودين أثناء تحريك الخريطة."
 
-#: src/signalk_notes_opencpn_pi.cpp:1238
+#: src/signalk_notes_opencpn_pi.cpp:1469
 msgid "Notes at this position"
 msgstr "الملاحظات في هذا الموقع"
 
-#: src/signalk_notes_opencpn_pi.cpp:1280 src/tpSignalKNotes.cpp:449
-#: src/tpConfigDialog.cpp:186
+#: src/signalk_notes_opencpn_pi.cpp:1511 src/tpSignalKNotes.cpp:515
+#: src/tpSignalKNotes.cpp:580 src/tpSignalKNotes.cpp:657
+#: src/tpConfigDialog.cpp:190
 msgid "OK"
 msgstr "موافق"
 
@@ -200,7 +208,7 @@ msgstr "موافق"
 msgid "OpenCPN Alert"
 msgstr "تنبيه OpenCPN"
 
-#: src/tpConfigDialog.cpp:838 src/tpConfigDialog.cpp:892
+#: src/tpConfigDialog.cpp:843 src/tpConfigDialog.cpp:897
 msgid "Preview:"
 msgstr "معاينة:"
 
@@ -208,25 +216,29 @@ msgstr "معاينة:"
 msgid "Provider"
 msgstr "المزوّد"
 
+#: src/tpConfigDialog.cpp:1067
+msgid "Resourcesets"
+msgstr ""
+
 #: src/tpConfigDialog.cpp:104
 msgid "Select the providers to display:"
 msgstr "اختر المزوّدين لعرضهم:"
 
-#: src/tpSignalKNotes.cpp:580
+#: src/tpSignalKNotes.cpp:778
 msgid "Server host not configured"
 msgstr "مضيف الخادم غير مُعد"
 
-#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:677
-#: src/tpConfigDialog.cpp:725
+#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:682
+#: src/tpConfigDialog.cpp:730
 msgid "SignalK Connection"
 msgstr "اتصال SignalK"
 
-#: src/tpSignalKNotes.cpp:387
+#: src/tpSignalKNotes.cpp:611
 msgid "SignalK Note Details"
 msgstr "تفاصيل ملاحظة SignalK"
 
-#: src/signalk_notes_opencpn_pi.cpp:181 src/signalk_notes_opencpn_pi.cpp:184
-#: src/signalk_notes_opencpn_pi.cpp:187 src/signalk_notes_opencpn_pi.cpp:189
+#: src/signalk_notes_opencpn_pi.cpp:180 src/signalk_notes_opencpn_pi.cpp:183
+#: src/signalk_notes_opencpn_pi.cpp:186 src/signalk_notes_opencpn_pi.cpp:188
 msgid "SignalK Notes"
 msgstr "ملاحظات SignalK"
 
@@ -234,16 +246,21 @@ msgstr "ملاحظات SignalK"
 msgid "SignalK Notes Configuration"
 msgstr "إعدادات ملاحظات SignalK"
 
-#: src/signalk_notes_opencpn_pi.cpp:695 src/signalk_notes_opencpn_pi.cpp:729
-#: src/signalk_notes_opencpn_pi.cpp:738
+#: src/signalk_notes_opencpn_pi.cpp:731 src/signalk_notes_opencpn_pi.cpp:765
+#: src/signalk_notes_opencpn_pi.cpp:774
 msgid "SignalK Notes Plugin"
 msgstr "إضافة ملاحظات SignalK"
 
-#: src/tpConfigDialog.cpp:175 src/tpConfigDialog.cpp:729
+#. Auth-Button aktiv
+#: src/tpConfigDialog.cpp:179 src/tpConfigDialog.cpp:734
 msgid "SignalK authentication"
 msgstr "مصادقة SignalK"
 
-#: src/tpConfigDialog.cpp:532
+#: src/tpConfigDialog.cpp:537
 #, c-format
 msgid "Total icons: %d"
 msgstr "إجمالي الأيقونات: %d"
+
+#: src/tpSignalKNotes.cpp:1671 src/tpSignalKNotes.cpp:1901
+msgid "Unknown"
+msgstr ""

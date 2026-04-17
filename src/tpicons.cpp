@@ -40,7 +40,7 @@ void tpicons::initialize_images(void) {
   wxFileName fn;
 
   // Plugin-Datenverzeichnis
-  fn.SetPath(GetPluginDataDir("signalk_notes_opencpn_pi"));
+  fn.SetPath(m_plugin->m_pluginDataDir);
   fn.AppendDir("data");
 
   SKN_LOG(m_plugin,"signalk_notes_opencpn_pi data location: %s", fn.GetFullPath());

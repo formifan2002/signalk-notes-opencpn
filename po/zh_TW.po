@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 08:53+0100\n"
+"POT-Creation-Date: 2026-03-31 10:41+0200\n"
 "PO-Revision-Date: 2023-10-04 18:33\n"
 "Last-Translator: \n"
 "Language-Team: Chinese (Traditional, Taiwan)\n"
@@ -14,62 +14,69 @@ msgstr ""
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
 "X-Crowdin-Language: zh-TW\n"
-"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/signalk_notes_opencpn_pi.pot\n"
+"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/"
+"signalk_notes_opencpn_pi.pot\n"
 "X-Crowdin-File-ID: 344\n"
 
 #: src/tpConfigDialog.cpp:123
 msgid "API update interval (minutes)"
 msgstr "API 更新間隔（分鐘）"
 
-#: src/tpConfigDialog.cpp:927
+#: src/tpConfigDialog.cpp:932
 msgid "Advanced debug logging in opencpn.log"
 msgstr "在 opencpn.log 中啟用進階除錯記錄"
 
-#: src/tpConfigDialog.cpp:709
+#. Auth-Button deaktiviert mit neuem Text
+#: src/tpConfigDialog.cpp:714
 msgid "Authentication in progress..."
 msgstr "正在進行驗證..."
 
-#: src/tpConfigDialog.cpp:187
+#: src/tpConfigDialog.cpp:191
 msgid "Cancel"
 msgstr "取消"
 
-#: src/tpConfigDialog.cpp:180
+#: src/tpConfigDialog.cpp:184
 msgid "Cancel authentication"
 msgstr "取消驗證"
 
-#: src/tpSignalKNotes.cpp:428
+#: src/tpSignalKNotes.cpp:497 src/tpSignalKNotes.cpp:562
+#: src/tpSignalKNotes.cpp:639
 msgid "Center on map"
 msgstr "在地圖上置中"
 
-#: src/tpConfigDialog.cpp:868 src/tpConfigDialog.cpp:875
+#: src/tpConfigDialog.cpp:873 src/tpConfigDialog.cpp:880
 msgid "Circle color:"
 msgstr "圓圈顏色："
 
-#: src/tpConfigDialog.cpp:860
+#: src/tpConfigDialog.cpp:865
 msgid "Cluster radius (px):"
 msgstr "叢集半徑（px）："
 
-#: src/tpConfigDialog.cpp:846
+#: src/tpConfigDialog.cpp:851
 msgid "Cluster settings"
 msgstr "叢集設定"
 
-#: src/tpConfigDialog.cpp:852
+#: src/tpConfigDialog.cpp:857
 msgid "Cluster size (px):"
 msgstr "叢集大小（px）："
 
-#: src/tpConfigDialog.cpp:161
+#: src/tpConfigDialog.cpp:165
 msgid "Deciption"
 msgstr "描述"
 
-#: src/tpSignalKNotes.cpp:367
+#: src/tpSignalKNotes.cpp:545
 msgid "Details could not be loaded."
 msgstr "無法載入詳細資訊。"
 
-#: src/tpConfigDialog.cpp:556
+#: src/tpConfigDialog.cpp:1073
+msgid "Enable resource sets and choose an icon for the chart display."
+msgstr ""
+
+#: src/tpConfigDialog.cpp:561
 msgid "Error"
 msgstr "錯誤"
 
-#: src/tpConfigDialog.cpp:553
+#: src/tpConfigDialog.cpp:558
 msgid ""
 "Error requesting authentication. Are there still 'access requests' in "
 "SignalK? If yes, delete/reject them."
@@ -83,15 +90,15 @@ msgid ""
 msgstr ""
 "無法載入所有 signalk_notes_opencpn_pi 圖示，請查看 OCPN 日誌以取得詳細資訊"
 
-#: src/tpSignalKNotes.cpp:751
+#: src/tpSignalKNotes.cpp:978
 msgid "Failed to parse note details JSON"
 msgstr "解析筆記詳細資料 JSON 失敗"
 
-#: src/tpSignalKNotes.cpp:627
+#: src/tpSignalKNotes.cpp:854
 msgid "Failed to parse notes list JSON"
 msgstr "解析筆記清單 JSON 失敗"
 
-#: src/tpConfigDialog.cpp:881
+#: src/tpConfigDialog.cpp:886
 msgid "Font size"
 msgstr "字型大小"
 
@@ -99,20 +106,20 @@ msgstr "字型大小"
 msgid "Icon mapping"
 msgstr "圖示對應"
 
-#: src/tpConfigDialog.cpp:821
+#: src/tpConfigDialog.cpp:826
 msgid "Icon settings"
 msgstr "圖示設定"
 
-#: src/tpConfigDialog.cpp:827
+#: src/tpConfigDialog.cpp:832
 msgid "Icon size (px):"
 msgstr "圖示大小（px）："
 
-#: src/tpConfigDialog.cpp:528
+#: src/tpConfigDialog.cpp:533
 #, c-format
 msgid "Icons in the left map area: %d"
 msgstr "左側地圖區域中的圖示：%d"
 
-#: src/tpConfigDialog.cpp:517
+#: src/tpConfigDialog.cpp:522
 #, c-format
 msgid "Icons in the map area: %d"
 msgstr "地圖區域中的圖示：%d"
@@ -121,12 +128,12 @@ msgstr "地圖區域中的圖示：%d"
 msgid "Icons in the map area: 0"
 msgstr "地圖區域中的圖示：0"
 
-#: src/tpConfigDialog.cpp:530
+#: src/tpConfigDialog.cpp:535
 #, c-format
 msgid "Icons in the right map area: %d"
 msgstr "右側地圖區域中的圖示：%d"
 
-#: src/tpConfigDialog.cpp:545
+#: src/tpConfigDialog.cpp:550
 msgid ""
 "In SignalK, please confirm the request in the menu item 'Access Requests' "
 "with 'Permission' Admin and 'Authentication Timeout' NEVER."
@@ -134,7 +141,7 @@ msgstr ""
 "在 SignalK 中，請於「Access Requests」選單中確認請求，\n"
 "將「Permission」設為 Admin，並將「Authentication Timeout」設為 NEVER。"
 
-#: src/signalk_notes_opencpn_pi.cpp:737
+#: src/signalk_notes_opencpn_pi.cpp:773
 msgid "Invalid host or port values in DataConnections."
 msgstr "DataConnections 中的主機或連接埠值無效。"
 
@@ -142,25 +149,24 @@ msgstr "DataConnections 中的主機或連接埠值無效。"
 msgid "Map SignalK icons to plugin icons:"
 msgstr "將 SignalK 圖示對應至外掛圖示："
 
-#: src/tpConfigDialog.cpp:903
+#: src/tpConfigDialog.cpp:908
 msgid "Maximum scale for cluster 1:"
 msgstr "叢集 1 的最大縮放比例："
 
-#: src/tpConfigDialog.cpp:1041
+#: src/tpConfigDialog.cpp:1046
 msgid "Maximum scale must be at least 800."
 msgstr "最大縮放比例必須至少為 800。"
 
-#: src/tpConfigDialog.cpp:1044
+#: src/tpConfigDialog.cpp:1049
 msgid ""
 "Maximum scale must be smaller than minimum scale (or minimum scale = 0)."
-msgstr ""
-"最大縮放比例必須小於最小縮放比例（或最小縮放比例 = 0）。"
+msgstr "最大縮放比例必須小於最小縮放比例（或最小縮放比例 = 0）。"
 
-#: src/tpConfigDialog.cpp:912
+#: src/tpConfigDialog.cpp:917
 msgid "Minimum scale for cluster 1:"
 msgstr "叢集 1 的最小縮放比例："
 
-#: src/signalk_notes_opencpn_pi.cpp:693
+#: src/signalk_notes_opencpn_pi.cpp:729
 msgid ""
 "No DataConnections entry found.\n"
 "Please check your OpenCPN settings."
@@ -168,30 +174,27 @@ msgstr ""
 "找不到 DataConnections 項目。\n"
 "請檢查您的 OpenCPN 設定。"
 
-#: src/signalk_notes_opencpn_pi.cpp:727
+#: src/signalk_notes_opencpn_pi.cpp:763
 msgid ""
 "No matching NMEA SignalK connection found.\n"
 "Please add a connection for SignalK in OpenCPN."
-msgstr ""
-"找不到與 SignalK 相符的 NMEA 連線。"
-"請在 OpenCPN 中新增 SignalK 連線."
+msgstr "找不到與 SignalK 相符的 NMEA 連線。請在 OpenCPN 中新增 SignalK 連線."
 
-#: src/tpConfigDialog.cpp:379
+#: src/tpConfigDialog.cpp:382
 msgid "Note: No providers configured yet. Move the map to discover providers."
-msgstr ""
-"注意：尚未設定任何提供者。請移動地圖以探索可用的提供者。"
+msgstr "注意：尚未設定任何提供者。請移動地圖以探索可用的提供者。"
 
 #: src/tpConfigDialog.cpp:92
 msgid "Note: Providers are discovered as you move the map."
-msgstr ""
-"注意：移動地圖時會自動發現提供者。"
+msgstr "注意：移動地圖時會自動發現提供者。"
 
-#: src/signalk_notes_opencpn_pi.cpp:1238
+#: src/signalk_notes_opencpn_pi.cpp:1469
 msgid "Notes at this position"
 msgstr "此位置的筆記"
 
-#: src/signalk_notes_opencpn_pi.cpp:1280 src/tpSignalKNotes.cpp:449
-#: src/tpConfigDialog.cpp:186
+#: src/signalk_notes_opencpn_pi.cpp:1511 src/tpSignalKNotes.cpp:515
+#: src/tpSignalKNotes.cpp:580 src/tpSignalKNotes.cpp:657
+#: src/tpConfigDialog.cpp:190
 msgid "OK"
 msgstr "確定"
 
@@ -199,7 +202,7 @@ msgstr "確定"
 msgid "OpenCPN Alert"
 msgstr "OpenCPN 警示"
 
-#: src/tpConfigDialog.cpp:838 src/tpConfigDialog.cpp:892
+#: src/tpConfigDialog.cpp:843 src/tpConfigDialog.cpp:897
 msgid "Preview:"
 msgstr "預覽："
 
@@ -207,25 +210,29 @@ msgstr "預覽："
 msgid "Provider"
 msgstr "提供者"
 
+#: src/tpConfigDialog.cpp:1067
+msgid "Resourcesets"
+msgstr ""
+
 #: src/tpConfigDialog.cpp:104
 msgid "Select the providers to display:"
 msgstr "選擇要顯示的提供者："
 
-#: src/tpSignalKNotes.cpp:580
+#: src/tpSignalKNotes.cpp:778
 msgid "Server host not configured"
 msgstr "伺服器主機尚未設定"
 
-#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:677
-#: src/tpConfigDialog.cpp:725
+#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:682
+#: src/tpConfigDialog.cpp:730
 msgid "SignalK Connection"
 msgstr "SignalK 連線"
 
-#: src/tpSignalKNotes.cpp:387
+#: src/tpSignalKNotes.cpp:611
 msgid "SignalK Note Details"
 msgstr "SignalK 筆記詳細資訊"
 
-#: src/signalk_notes_opencpn_pi.cpp:181 src/signalk_notes_opencpn_pi.cpp:184
-#: src/signalk_notes_opencpn_pi.cpp:187 src/signalk_notes_opencpn_pi.cpp:189
+#: src/signalk_notes_opencpn_pi.cpp:180 src/signalk_notes_opencpn_pi.cpp:183
+#: src/signalk_notes_opencpn_pi.cpp:186 src/signalk_notes_opencpn_pi.cpp:188
 msgid "SignalK Notes"
 msgstr "SignalK 筆記"
 
@@ -233,16 +240,21 @@ msgstr "SignalK 筆記"
 msgid "SignalK Notes Configuration"
 msgstr "SignalK 筆記設定"
 
-#: src/signalk_notes_opencpn_pi.cpp:695 src/signalk_notes_opencpn_pi.cpp:729
-#: src/signalk_notes_opencpn_pi.cpp:738
+#: src/signalk_notes_opencpn_pi.cpp:731 src/signalk_notes_opencpn_pi.cpp:765
+#: src/signalk_notes_opencpn_pi.cpp:774
 msgid "SignalK Notes Plugin"
 msgstr "SignalK 筆記外掛"
 
-#: src/tpConfigDialog.cpp:175 src/tpConfigDialog.cpp:729
+#. Auth-Button aktiv
+#: src/tpConfigDialog.cpp:179 src/tpConfigDialog.cpp:734
 msgid "SignalK authentication"
 msgstr "SignalK 驗證"
 
-#: src/tpConfigDialog.cpp:532
+#: src/tpConfigDialog.cpp:537
 #, c-format
 msgid "Total icons: %d"
 msgstr "圖示總數：%d"
+
+#: src/tpSignalKNotes.cpp:1671 src/tpSignalKNotes.cpp:1901
+msgid "Unknown"
+msgstr ""

@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: opencpn\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-15 08:53+0100\n"
+"POT-Creation-Date: 2026-03-31 10:41+0200\n"
 "PO-Revision-Date: 2023-10-04 18:33\n"
 "Last-Translator: \n"
 "Language-Team: Turkish\n"
@@ -14,84 +14,93 @@ msgstr ""
 "X-Crowdin-Project: opencpn\n"
 "X-Crowdin-Project-ID: 49843\n"
 "X-Crowdin-Language: tr\n"
-"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/signalk_notes_opencpn_pi.pot\n"
+"X-Crowdin-File: /plugins/signalk_notes_opencpn_pi/po/"
+"signalk_notes_opencpn_pi.pot\n"
 "X-Crowdin-File-ID: 344\n"
 
 #: src/tpConfigDialog.cpp:123
 msgid "API update interval (minutes)"
 msgstr "API güncelleme aralığı (dakika)"
 
-#: src/tpConfigDialog.cpp:927
+#: src/tpConfigDialog.cpp:932
 msgid "Advanced debug logging in opencpn.log"
 msgstr "opencpn.log içinde gelişmiş hata ayıklama kaydı"
 
-#: src/tpConfigDialog.cpp:709
+#. Auth-Button deaktiviert mit neuem Text
+#: src/tpConfigDialog.cpp:714
 msgid "Authentication in progress..."
 msgstr "Kimlik doğrulama devam ediyor..."
 
-#: src/tpConfigDialog.cpp:187
+#: src/tpConfigDialog.cpp:191
 msgid "Cancel"
 msgstr "İptal"
 
-#: src/tpConfigDialog.cpp:180
+#: src/tpConfigDialog.cpp:184
 msgid "Cancel authentication"
 msgstr "Kimlik doğrulamayı iptal et"
 
-#: src/tpSignalKNotes.cpp:428
+#: src/tpSignalKNotes.cpp:497 src/tpSignalKNotes.cpp:562
+#: src/tpSignalKNotes.cpp:639
 msgid "Center on map"
 msgstr "Haritada ortala"
 
-#: src/tpConfigDialog.cpp:868 src/tpConfigDialog.cpp:875
+#: src/tpConfigDialog.cpp:873 src/tpConfigDialog.cpp:880
 msgid "Circle color:"
 msgstr "Daire rengi:"
 
-#: src/tpConfigDialog.cpp:860
+#: src/tpConfigDialog.cpp:865
 msgid "Cluster radius (px):"
 msgstr "Küme yarıçapı (px):"
 
-#: src/tpConfigDialog.cpp:846
+#: src/tpConfigDialog.cpp:851
 msgid "Cluster settings"
 msgstr "Küme ayarları"
 
-#: src/tpConfigDialog.cpp:852
+#: src/tpConfigDialog.cpp:857
 msgid "Cluster size (px):"
 msgstr "Küme boyutu (px):"
 
-#: src/tpConfigDialog.cpp:161
+#: src/tpConfigDialog.cpp:165
 msgid "Deciption"
 msgstr "Açıklama"
 
-#: src/tpSignalKNotes.cpp:367
+#: src/tpSignalKNotes.cpp:545
 msgid "Details could not be loaded."
 msgstr "Ayrıntılar yüklenemedi."
 
-#: src/tpConfigDialog.cpp:556
+#: src/tpConfigDialog.cpp:1073
+msgid "Enable resource sets and choose an icon for the chart display."
+msgstr ""
+
+#: src/tpConfigDialog.cpp:561
 msgid "Error"
 msgstr "Hata"
 
-#: src/tpConfigDialog.cpp:553
+#: src/tpConfigDialog.cpp:558
 msgid ""
 "Error requesting authentication. Are there still 'access requests' in "
 "SignalK? If yes, delete/reject them."
 msgstr ""
-"Kimlik doğrulama isteğinde hata oluştu. SignalK içinde hâlâ 'erişim istekleri' var mı?\n"
+"Kimlik doğrulama isteğinde hata oluştu. SignalK içinde hâlâ 'erişim "
+"istekleri' var mı?\n"
 "Eğer varsa, silin veya reddedin."
 
 #: src/tpicons.cpp:71
 msgid ""
 "Failed to load all signalk_notes_opencpn_pi icons, check OCPN log for details"
 msgstr ""
-"Tüm signalk_notes_opencpn_pi simgeleri yüklenemedi. Ayrıntılar için OCPN günlüğünü kontrol edin."
+"Tüm signalk_notes_opencpn_pi simgeleri yüklenemedi. Ayrıntılar için OCPN "
+"günlüğünü kontrol edin."
 
-#: src/tpSignalKNotes.cpp:751
+#: src/tpSignalKNotes.cpp:978
 msgid "Failed to parse note details JSON"
 msgstr "Not ayrıntıları JSON'u ayrıştırılamadı"
 
-#: src/tpSignalKNotes.cpp:627
+#: src/tpSignalKNotes.cpp:854
 msgid "Failed to parse notes list JSON"
 msgstr "Not listesi JSON'u ayrıştırılamadı"
 
-#: src/tpConfigDialog.cpp:881
+#: src/tpConfigDialog.cpp:886
 msgid "Font size"
 msgstr "Yazı tipi boyutu"
 
@@ -99,20 +108,20 @@ msgstr "Yazı tipi boyutu"
 msgid "Icon mapping"
 msgstr "Simge eşlemesi"
 
-#: src/tpConfigDialog.cpp:821
+#: src/tpConfigDialog.cpp:826
 msgid "Icon settings"
 msgstr "Simge ayarları"
 
-#: src/tpConfigDialog.cpp:827
+#: src/tpConfigDialog.cpp:832
 msgid "Icon size (px):"
 msgstr "Simge boyutu (px):"
 
-#: src/tpConfigDialog.cpp:528
+#: src/tpConfigDialog.cpp:533
 #, c-format
 msgid "Icons in the left map area: %d"
 msgstr "Haritanın sol alanındaki simgeler: %d"
 
-#: src/tpConfigDialog.cpp:517
+#: src/tpConfigDialog.cpp:522
 #, c-format
 msgid "Icons in the map area: %d"
 msgstr "Harita alanındaki simgeler: %d"
@@ -121,19 +130,20 @@ msgstr "Harita alanındaki simgeler: %d"
 msgid "Icons in the map area: 0"
 msgstr "Harita alanındaki simgeler: 0"
 
-#: src/tpConfigDialog.cpp:530
+#: src/tpConfigDialog.cpp:535
 #, c-format
 msgid "Icons in the right map area: %d"
 msgstr "Haritanın sağ alanındaki simgeler: %d"
 
-#: src/tpConfigDialog.cpp:545
+#: src/tpConfigDialog.cpp:550
 msgid ""
 "In SignalK, please confirm the request in the menu item 'Access Requests' "
 "with 'Permission' Admin and 'Authentication Timeout' NEVER."
 msgstr ""
-"SignalK içinde, 'Access Requests' menüsündeki isteği 'Permission' = Admin ve 'Authentication Timeout' = NEVER olarak onaylayın."
+"SignalK içinde, 'Access Requests' menüsündeki isteği 'Permission' = Admin ve "
+"'Authentication Timeout' = NEVER olarak onaylayın."
 
-#: src/signalk_notes_opencpn_pi.cpp:737
+#: src/signalk_notes_opencpn_pi.cpp:773
 msgid "Invalid host or port values in DataConnections."
 msgstr "DataConnections içinde geçersiz sunucu veya port değerleri."
 
@@ -141,25 +151,25 @@ msgstr "DataConnections içinde geçersiz sunucu veya port değerleri."
 msgid "Map SignalK icons to plugin icons:"
 msgstr "SignalK simgelerini eklenti simgeleriyle eşleştir:"
 
-#: src/tpConfigDialog.cpp:903
+#: src/tpConfigDialog.cpp:908
 msgid "Maximum scale for cluster 1:"
 msgstr "Küme 1 için maksimum ölçek:"
 
-#: src/tpConfigDialog.cpp:1041
+#: src/tpConfigDialog.cpp:1046
 msgid "Maximum scale must be at least 800."
 msgstr "Maksimum ölçek en az 800 olmalıdır."
 
-#: src/tpConfigDialog.cpp:1044
+#: src/tpConfigDialog.cpp:1049
 msgid ""
 "Maximum scale must be smaller than minimum scale (or minimum scale = 0)."
 msgstr ""
 "Maksimum ölçek minimum ölçekten küçük olmalıdır (veya minimum ölçek = 0)."
 
-#: src/tpConfigDialog.cpp:912
+#: src/tpConfigDialog.cpp:917
 msgid "Minimum scale for cluster 1:"
 msgstr "Küme 1 için minimum ölçek:"
 
-#: src/signalk_notes_opencpn_pi.cpp:693
+#: src/signalk_notes_opencpn_pi.cpp:729
 msgid ""
 "No DataConnections entry found.\n"
 "Please check your OpenCPN settings."
@@ -167,30 +177,31 @@ msgstr ""
 "DataConnections girdisi bulunamadı.\n"
 "Lütfen OpenCPN ayarlarınızı kontrol edin."
 
-#: src/signalk_notes_opencpn_pi.cpp:727
+#: src/signalk_notes_opencpn_pi.cpp:763
 msgid ""
 "No matching NMEA SignalK connection found.\n"
 "Please add a connection for SignalK in OpenCPN."
 msgstr ""
-"SignalK için eşleşen bir NMEA bağlantısı bulunamadı."
-"Lütfen OpenCPN'de bir SignalK bağlantısı ekleyin."
+"SignalK için eşleşen bir NMEA bağlantısı bulunamadı.Lütfen OpenCPN'de bir "
+"SignalK bağlantısı ekleyin."
 
-#: src/tpConfigDialog.cpp:379
+#: src/tpConfigDialog.cpp:382
 msgid "Note: No providers configured yet. Move the map to discover providers."
 msgstr ""
-"Not: Henüz yapılandırılmış sağlayıcı yok. Sağlayıcıları keşfetmek için haritayı hareket ettirin."
+"Not: Henüz yapılandırılmış sağlayıcı yok. Sağlayıcıları keşfetmek için "
+"haritayı hareket ettirin."
 
 #: src/tpConfigDialog.cpp:92
 msgid "Note: Providers are discovered as you move the map."
-msgstr ""
-"Not: Haritayı hareket ettirdikçe sağlayıcılar keşfedilir."
+msgstr "Not: Haritayı hareket ettirdikçe sağlayıcılar keşfedilir."
 
-#: src/signalk_notes_opencpn_pi.cpp:1238
+#: src/signalk_notes_opencpn_pi.cpp:1469
 msgid "Notes at this position"
 msgstr "Bu konumdaki notlar"
 
-#: src/signalk_notes_opencpn_pi.cpp:1280 src/tpSignalKNotes.cpp:449
-#: src/tpConfigDialog.cpp:186
+#: src/signalk_notes_opencpn_pi.cpp:1511 src/tpSignalKNotes.cpp:515
+#: src/tpSignalKNotes.cpp:580 src/tpSignalKNotes.cpp:657
+#: src/tpConfigDialog.cpp:190
 msgid "OK"
 msgstr "Tamam"
 
@@ -198,7 +209,7 @@ msgstr "Tamam"
 msgid "OpenCPN Alert"
 msgstr "OpenCPN Uyarısı"
 
-#: src/tpConfigDialog.cpp:838 src/tpConfigDialog.cpp:892
+#: src/tpConfigDialog.cpp:843 src/tpConfigDialog.cpp:897
 msgid "Preview:"
 msgstr "Önizleme:"
 
@@ -206,25 +217,29 @@ msgstr "Önizleme:"
 msgid "Provider"
 msgstr "Sağlayıcı"
 
+#: src/tpConfigDialog.cpp:1067
+msgid "Resourcesets"
+msgstr ""
+
 #: src/tpConfigDialog.cpp:104
 msgid "Select the providers to display:"
 msgstr "Gösterilecek sağlayıcıları seçin:"
 
-#: src/tpSignalKNotes.cpp:580
+#: src/tpSignalKNotes.cpp:778
 msgid "Server host not configured"
 msgstr "Sunucu ana bilgisayarı yapılandırılmamış"
 
-#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:677
-#: src/tpConfigDialog.cpp:725
+#: src/tpConfigDialog.cpp:116 src/tpConfigDialog.cpp:682
+#: src/tpConfigDialog.cpp:730
 msgid "SignalK Connection"
 msgstr "SignalK Bağlantısı"
 
-#: src/tpSignalKNotes.cpp:387
+#: src/tpSignalKNotes.cpp:611
 msgid "SignalK Note Details"
 msgstr "SignalK Not Ayrıntıları"
 
-#: src/signalk_notes_opencpn_pi.cpp:181 src/signalk_notes_opencpn_pi.cpp:184
-#: src/signalk_notes_opencpn_pi.cpp:187 src/signalk_notes_opencpn_pi.cpp:189
+#: src/signalk_notes_opencpn_pi.cpp:180 src/signalk_notes_opencpn_pi.cpp:183
+#: src/signalk_notes_opencpn_pi.cpp:186 src/signalk_notes_opencpn_pi.cpp:188
 msgid "SignalK Notes"
 msgstr "SignalK Notları"
 
@@ -232,16 +247,21 @@ msgstr "SignalK Notları"
 msgid "SignalK Notes Configuration"
 msgstr "SignalK Notları Yapılandırması"
 
-#: src/signalk_notes_opencpn_pi.cpp:695 src/signalk_notes_opencpn_pi.cpp:729
-#: src/signalk_notes_opencpn_pi.cpp:738
+#: src/signalk_notes_opencpn_pi.cpp:731 src/signalk_notes_opencpn_pi.cpp:765
+#: src/signalk_notes_opencpn_pi.cpp:774
 msgid "SignalK Notes Plugin"
 msgstr "SignalK Notes Eklentisi"
 
-#: src/tpConfigDialog.cpp:175 src/tpConfigDialog.cpp:729
+#. Auth-Button aktiv
+#: src/tpConfigDialog.cpp:179 src/tpConfigDialog.cpp:734
 msgid "SignalK authentication"
 msgstr "SignalK kimlik doğrulaması"
 
-#: src/tpConfigDialog.cpp:532
+#: src/tpConfigDialog.cpp:537
 #, c-format
 msgid "Total icons: %d"
 msgstr "Toplam simge: %d"
+
+#: src/tpSignalKNotes.cpp:1671 src/tpSignalKNotes.cpp:1901
+msgid "Unknown"
+msgstr ""

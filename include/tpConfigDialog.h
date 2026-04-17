@@ -92,6 +92,13 @@ public:
   static const int DEFAULT_CLUSTER_MIN_SCALE = 0;
   static const int DEFAULT_FETCH_INTERVAL = 1;
 
+  void CreateResourceSetTab();
+  void UpdateResourceSetTab(
+      const std::map<wxString, signalk_notes_opencpn_pi::ResourceSetConfig>&
+          configs);
+  std::map<wxString, signalk_notes_opencpn_pi::ResourceSetConfig>
+  GetResourceSetConfigs() const;
+
 private:
   bool m_settingsLoaded = false;
   void InitializeAuthUI();
@@ -178,6 +185,24 @@ private:
   void ValidateScaleSettings();
   void OnScaleSettingChanged(wxSpinEvent& event);
   DECLARE_EVENT_TABLE()
+
+  // Resourceset UI
+  wxPanel* m_resourceSetPanel = nullptr;
+  wxScrolledWindow* m_resourceSetScrollWin = nullptr;
+
+  struct SubRSRow {
+    wxString rsName;
+    wxString subName;
+    wxCheckBox* enabledCheck = nullptr;
+    wxBitmapComboBox* iconCombo = nullptr;
+  };
+  struct MainRSRow {
+    wxString rsName;
+    wxCheckBox* enabledCheck = nullptr;
+    std::vector<SubRSRow> subRows;
+  };
+  std::vector<MainRSRow> m_rsRows;
+  void OnMainRSToggled(wxCommandEvent& event);
 };
 
 #endif

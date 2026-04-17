@@ -109,16 +109,16 @@ signalk_notes_opencpn_pi::signalk_notes_opencpn_pi(void* ppimgr)
     : opencpn_plugin_119(ppimgr) {
   g_signalk_notes_opencpn_pi = this;
 
-  wxString pluginDir = GetPluginDataDir("signalk_notes_opencpn_pi");
-  if (!pluginDir.EndsWith("/")) pluginDir += "/";
+  m_pluginDataDir = GetPluginDataDir("signalk_notes_opencpn_pi");
+  if (!m_pluginDataDir.EndsWith("/")) m_pluginDataDir += "/";
 
-  wxString dataDir = pluginDir + "data/";
+  wxString dataDir = m_pluginDataDir + "data/";
   if (!wxDir::Exists(dataDir)) wxMkdir(dataDir);
 
   wxString iconDir = dataDir + "icons/";
   if (!wxDir::Exists(iconDir)) wxMkdir(iconDir);
 
-  wxString layerDir = pluginDir + "Layers/";
+  wxString layerDir = m_pluginDataDir + "Layers/";
   if (!wxDir::Exists(layerDir)) wxMkdir(layerDir);
 
   m_ptpicons = new tpicons(this);
@@ -166,9 +166,8 @@ wxString signalk_notes_opencpn_pi::GetLongDescription() {
 // Init / DeInit
 int signalk_notes_opencpn_pi::Init(void) {
   AddLocaleCatalog(PLUGIN_CATALOG_NAME);
-  // wxMessageBox("Attach debugger now! PID: " + wxString::Format("%d",
-  // getpid()),
-  //              "Debug", wxOK);
+  //wxMessageBox("Attach debugger now! PID: " + wxString::Format("%d", getpid()),
+  //             "Debug", wxOK);
   m_parent_window = GetOCPNCanvasWindow();
   m_pTPConfig = GetOCPNConfigObject();
 
@@ -233,6 +232,39 @@ void signalk_notes_opencpn_pi::OnToolbarToolCallback(int id) {
   }
 
   m_pConfigDialog = new tpConfigDialog(this, GetOCPNCanvasWindow());
+
+  // Resourcesets von SignalK abfragen und Tab befüllen
+  if (m_pSignalKNotesManager) {
+    std::set<wxString> available;
+    if (m_pSignalKNotesManager->FetchAvailableResourceSets(available)) {
+      m_availableResourceSets = available;
+
+      for (const auto& rsName : available) {
+        if (m_resourceSetConfigs.find(rsName) == m_resourceSetConfigs.end()) {
+          ResourceSetConfig cfg;
+          cfg.name = rsName;
+          cfg.enabled = false;
+          m_resourceSetConfigs[rsName] = cfg;
+        }
+      }
+
+      for (auto& rsKv : m_resourceSetConfigs) {
+        std::map<wxString, SubResourceSetConfig> discovered;
+        if (m_pSignalKNotesManager->DiscoverSubResourceSets(rsKv.first, discovered)) {
+          for (auto& sub : discovered) {
+            if (rsKv.second.subSets.find(sub.first) == rsKv.second.subSets.end()) {
+              rsKv.second.subSets[sub.first] = sub.second;
+            }
+          }
+        }
+      }
+
+      if (!m_resourceSetConfigs.empty()) {
+        m_pConfigDialog->UpdateResourceSetTab(m_resourceSetConfigs);
+      }
+    }
+  }
+
   m_pConfigDialog->ShowModal();
 
   if (m_pConfigDialog->GetReturnCode() == wxID_OK) {
@@ -240,6 +272,8 @@ void signalk_notes_opencpn_pi::OnToolbarToolCallback(int id) {
         m_pConfigDialog->GetProviderSettings());
 
     m_pSignalKNotesManager->SetIconMappings(m_pConfigDialog->GetIconMappings());
+
+    m_resourceSetConfigs = m_pConfigDialog->GetResourceSetConfigs();  // ← WAR VERGESSEN
 
     SaveConfig();
 
@@ -385,6 +419,7 @@ bool signalk_notes_opencpn_pi::DoRenderCommon(PlugIn_ViewPort* vp,
   }
   return !state.clusters.empty();
 }
+
 
 bool signalk_notes_opencpn_pi::DoRenderOverlay(wxDC& dc, PlugIn_ViewPort* vp,
                                                int canvasIndex, int priority) {
@@ -676,6 +711,7 @@ void signalk_notes_opencpn_pi::SaveConfig() {
     m_pTPConfig->Write("DisplaySettings/FetchInterval",
                        m_pConfigDialog->GetFetchInterval());
   }
+  SaveResourceSetConfig(pConf);
   // Write changes to disk
   pConf->Flush();
   SKN_LOG(this, "SaveConfig Flush done");  // ← NEU
@@ -777,6 +813,8 @@ bool signalk_notes_opencpn_pi::LoadConfig() {
 
   m_pSignalKNotesManager->SetIconMappings(iconMappings);
 
+  LoadResourceSetConfig(pConf);
+
   pConf->SetPath("/Settings/signalk_notes_opencpn_pi");
 
   wxString authToken;
@@ -876,8 +914,74 @@ bool signalk_notes_opencpn_pi::LoadConfig() {
   return true;
 }
 
-wxString signalk_notes_opencpn_pi::GetPluginIconDir() const {
-  wxString dir = GetPluginDataDir("signalk_notes_opencpn_pi");
+void signalk_notes_opencpn_pi::LoadResourceSetConfig(wxFileConfig* pConf) {
+  if (!pConf) return;
+  m_resourceSetConfigsBackup = m_resourceSetConfigs;
+  m_resourceSetConfigs.clear();
+
+  pConf->SetPath("/Settings/signalk_notes_opencpn_pi/ResourceSets");
+  wxString key;
+  long idx;       
+  bool hasMore = pConf->GetFirstEntry(key, idx);
+  while (hasMore) {
+    wxString value;
+    pConf->Read(key, &value);
+
+    wxArrayString parts = wxSplit(value, '|');
+    if (parts.GetCount() >= 2) {
+      ResourceSetConfig cfg;
+      cfg.enabled = (parts[0] == "1");
+      cfg.name    = parts[1];
+      wxString subsPart = (parts.GetCount() >= 3) ? parts[2] : wxString("");
+
+      wxArrayString subs = wxSplit(subsPart, ',');
+      for (auto& sub : subs) {
+        if (sub.IsEmpty()) continue;
+        int colon = sub.Find(':');
+        if (colon == wxNOT_FOUND) continue;
+        SubResourceSetConfig subCfg;
+        subCfg.name     = sub.Left(colon);
+        subCfg.iconName = sub.Mid(colon + 1);
+        subCfg.enabled  = true;
+        cfg.subSets[subCfg.name] = subCfg;
+      }
+      m_resourceSetConfigs[cfg.name] = cfg;
+    }
+    hasMore = pConf->GetNextEntry(key, idx);
+  }
+
+  pConf->SetPath("/");
+}
+
+void signalk_notes_opencpn_pi::SaveResourceSetConfig(wxFileConfig* pConf) {
+  if (!pConf) return;
+
+  pConf->SetPath("/Settings/signalk_notes_opencpn_pi");
+  pConf->DeleteGroup("ResourceSets");
+  pConf->SetPath("/Settings/signalk_notes_opencpn_pi/ResourceSets");
+
+  for (auto& rsKv : m_resourceSetConfigs) {
+    wxArrayString subEntries;
+    for (auto& subKv : rsKv.second.subSets) {
+      if (!subKv.second.enabled) continue;
+      subEntries.Add(subKv.first + ":" + subKv.second.iconName);
+    }
+    if (!rsKv.second.enabled && subEntries.IsEmpty()) continue;
+
+    wxString rsKey = rsKv.first;
+    rsKey.Replace("/", "_");
+    rsKey.Replace(" ", "_");
+
+    pConf->Write(rsKey, wxString::Format("%d", (int)rsKv.second.enabled)
+                 + "|" + rsKv.first
+                 + "|" + wxJoin(subEntries, ','));
+  }
+
+  pConf->SetPath("/");
+}
+
+  wxString signalk_notes_opencpn_pi::GetPluginIconDir() const {
+    wxString dir = m_pluginDataDir;;
   if (!dir.EndsWith("/")) dir += "/";
   dir += "data/icons/";
   return dir;
@@ -1223,7 +1327,134 @@ void signalk_notes_opencpn_pi::DrawGLBitmap(const wxBitmap&, int, int) {
 
 void signalk_notes_opencpn_pi::ShowPreferencesDialog(wxWindow* parent) {
   tpConfigDialog dlg(this, parent);
-  dlg.ShowModal();
+
+  // Resourcesets von SignalK abfragen und Tab befüllen
+  // (muss NACH dem Konstruktor passieren, da FetchAvailableResourceSets
+  //  eine Netzwerk-Anfrage macht, die beim Konstruktor noch nicht sinnvoll ist)
+  if (m_pSignalKNotesManager) {
+    std::set<wxString> available;
+    if (m_pSignalKNotesManager->FetchAvailableResourceSets(available)) {
+      m_availableResourceSets = available;
+      for (const auto& rsName : available) {
+        if (m_resourceSetConfigs.find(rsName) == m_resourceSetConfigs.end()) {
+          ResourceSetConfig cfg;
+          cfg.name = rsName;
+          cfg.enabled = false;
+          m_resourceSetConfigs[rsName] = cfg;
+        }
+      }
+      if (!m_resourceSetConfigs.empty()) {
+        dlg.UpdateResourceSetTab(m_resourceSetConfigs);
+      }
+    }
+  }
+
+  m_resourceSetConfigsBackup = m_resourceSetConfigs;
+
+  if (dlg.ShowModal() == wxID_OK) {
+    const auto& newConfigs = dlg.GetResourceSetConfigs();
+    
+    bool configsChanged = false;
+    
+    // Prüfe ob sich etwas geändert hat
+    if (newConfigs.size() != m_resourceSetConfigsBackup.size()) {
+      configsChanged = true;
+    } else {
+      for (const auto& newRSKv : newConfigs) {
+        const wxString& rsName = newRSKv.first;
+        const auto& newRSCfg = newRSKv.second;
+        
+        auto oldIt = m_resourceSetConfigsBackup.find(rsName);
+        if (oldIt == m_resourceSetConfigsBackup.end()) {
+          configsChanged = true;
+          break;
+        }
+        
+        const auto& oldRSCfg = oldIt->second;
+        
+        // Vergleiche MainResourceSet-Einstellungen
+        if (newRSCfg.enabled != oldRSCfg.enabled) {
+          configsChanged = true;
+          break;
+        }
+        
+        // Vergleiche Sub-ResourceSet Icons
+        if (newRSCfg.subSets.size() != oldRSCfg.subSets.size()) {
+          configsChanged = true;
+          break;
+        }
+        
+        for (const auto& newSubKv : newRSCfg.subSets) {
+          const wxString& subName = newSubKv.first;
+          const auto& newSubCfg = newSubKv.second;
+          
+          auto oldSubIt = oldRSCfg.subSets.find(subName);
+          if (oldSubIt == oldRSCfg.subSets.end()) {
+            configsChanged = true;
+            break;
+          }
+          
+          const auto& oldSubCfg = oldSubIt->second;
+          
+          // Wenn sich Icon oder Enabled-Status geändert hat
+          if (newSubCfg.iconName != oldSubCfg.iconName || 
+              newSubCfg.enabled != oldSubCfg.enabled) {
+            configsChanged = true;
+            break;
+          }
+        }
+        
+        if (configsChanged) break;
+      }
+    }
+    
+    // NUR wenn sich etwas geändert hat:
+    if (configsChanged) {
+      // ResourceSet-spezifische Icons invalidieren
+      for (const auto& newRSKv : newConfigs) {
+        const auto& newRSCfg = newRSKv.second;
+        auto oldIt = m_resourceSetConfigsBackup.find(newRSKv.first);
+        
+        if (oldIt != m_resourceSetConfigsBackup.end()) {
+          const auto& oldRSCfg = oldIt->second;
+          
+          for (const auto& newSubKv : newRSCfg.subSets) {
+            const auto& newSubCfg = newSubKv.second;
+            auto oldSubIt = oldRSCfg.subSets.find(newSubKv.first);
+            
+            if (oldSubIt != oldRSCfg.subSets.end()) {
+              const auto& oldSubCfg = oldSubIt->second;
+              
+              // Nur das neue Icon invalidieren (wird neu geladen)
+              if (newSubCfg.iconName != oldSubCfg.iconName && 
+                  !newSubCfg.iconName.IsEmpty()) {
+                m_pSignalKNotesManager->InvalidateIconCache(newSubCfg.iconName);
+              }
+            } else {
+              // Neu hinzugefügtes Sub-ResourceSet
+              if (!newSubCfg.iconName.IsEmpty()) {
+                m_pSignalKNotesManager->InvalidateIconCache(newSubCfg.iconName);
+              }
+            }
+          }
+        } else {
+          // Neu hinzugefügtes Haupt-ResourceSet
+          for (const auto& subKv : newRSCfg.subSets) {
+            if (!subKv.second.iconName.IsEmpty()) {
+              m_pSignalKNotesManager->InvalidateIconCache(subKv.second.iconName);
+            }
+          }
+        }
+      }
+      
+      SKN_LOG(this, "ResourceSet configs changed, invalidating icon caches");
+      RequestRefresh(m_parent_window);  // ← NUR wenn sich was geändert hat!
+    }
+    // ===== ENDE: INTELLIGENTE INVALIDIERUNG =====
+    
+    m_resourceSetConfigs = newConfigs;
+    SaveConfig();
+  }
 }
 
 wxWindow* signalk_notes_opencpn_pi::GetParentWindow() {

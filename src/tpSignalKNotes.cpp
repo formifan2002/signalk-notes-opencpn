@@ -27,6 +27,8 @@
 #include <wx/artprov.h>
 #include <wx/uri.h>
 #include <wx/regex.h>
+#include <wx/base64.h>
+
 #include <cstring>
 #if defined(wxHAS_WEB_VIEW)
 #include <wx/webview.h>
@@ -35,6 +37,8 @@
 #ifndef __OCPN__ANDROID__
 #include <wx/bmpbndl.h>
 #endif
+
+#include "svgRenderer.h"
 
 wxString HttpGet(const wxString& url, const wxString& authHeader = "",
                  long* httpStatusOut = nullptr, wxString* errorOut = nullptr);
@@ -369,8 +373,8 @@ void tpSignalKNotesManager::UpdateDisplayedIcons(
   // Resourcesets abrufen - nur wenn Intervall abgelaufen
   wxLongLong now = wxGetLocalTimeMillis();
   bool rsFetchDue = (state.lastRSFetchTime == 0 ||
-      (now - state.lastRSFetchTime).ToLong() >
-          (long)(m_parent->GetFetchInterval() * 60 * 1000));
+                     (now - state.lastRSFetchTime).ToLong() >
+                         (long)(m_parent->GetFetchInterval() * 60 * 1000));
 
   if (m_parent && rsFetchDue) {
     std::set<wxString> activeRSNames;
@@ -379,7 +383,8 @@ void tpSignalKNotesManager::UpdateDisplayedIcons(
       if (!rsKv.second.enabled) continue;
       activeRSNames.insert(rsKv.first);
 
-      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig> discovered;
+      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>
+          discovered;
       FetchResourceSet(rsKv.first, discovered, state, rsKv.second.subSets);
 
       for (auto& sub : discovered) {
@@ -453,217 +458,271 @@ SignalKNote* tpSignalKNotesManager::GetNoteByGUID(
 
 void tpSignalKNotesManager::OnIconClick(
     const wxString& guid, signalk_notes_opencpn_pi::CanvasState& state,
-    int canvasIndex)
-{
-    SKN_LOG(m_parent, "OnIconClick called with guid='%s'", guid);
-    m_parent->m_dialogOpen = true;
+    int canvasIndex) {
+  SKN_LOG(m_parent, "OnIconClick called with guid='%s'", guid);
+  m_parent->m_dialogOpen = true;
 
-    // --- Gemeinsamer Exit-Block ---
-    auto FinishAndReleaseMouse = [&]() -> void {
+  // --- Gemeinsamer Exit-Block ---
+  auto FinishAndReleaseMouse = [&]() -> void {
+    wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+    if (canvas) {
+      wxMouseEvent upEvent(wxEVT_LEFT_UP);
+      upEvent.SetPosition(wxGetMousePosition());
+      canvas->GetEventHandler()->ProcessEvent(upEvent);
+    }
+    m_parent->m_dialogOpen = false;
+  };
+
+  // ============================================================
+  // 1. ResourceSet-Notes
+  // ============================================================
+  {
+    wxMutexLocker lock(state.notesMutex);
+    auto rsIt = state.resourceSetNotes.find(guid);
+    if (rsIt != state.resourceSetNotes.end()) {
+      const SignalKNote& note = rsIt->second;
+
+      wxDialog* dlg = new wxDialog(
+          m_parent->GetParentWindow(), wxID_ANY, note.name, wxDefaultPosition,
+          wxSize(500, 400), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+
+      wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+      // Beschreibung
+      wxTextCtrl* textCtrl = new wxTextCtrl(
+          dlg, wxID_ANY, note.description, wxDefaultPosition, wxDefaultSize,
+          wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
+      sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 10);
+
+      // Buttons
+      wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+
+      wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+      centerBtn->Bind(wxEVT_BUTTON, [this, &note, canvasIndex,
+                                     dlg](wxCommandEvent&) {
         wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+        double scale = 0.0;
         if (canvas) {
-            wxMouseEvent upEvent(wxEVT_LEFT_UP);
-            upEvent.SetPosition(wxGetMousePosition());
-            canvas->GetEventHandler()->ProcessEvent(upEvent);
+          scale = m_parent->m_canvasStates[canvasIndex].viewPort.view_scale_ppm;
         }
-        m_parent->m_dialogOpen = false;
-    };
-
-    // ============================================================
-    // 1. ResourceSet-Notes
-    // ============================================================
-    {
-        wxMutexLocker lock(state.notesMutex);
-        auto rsIt = state.resourceSetNotes.find(guid);
-        if (rsIt != state.resourceSetNotes.end()) {
-            const SignalKNote& note = rsIt->second;
-
-            wxDialog* dlg = new wxDialog(
-                m_parent->GetParentWindow(), wxID_ANY, note.name,
-                wxDefaultPosition, wxSize(500, 400),
-                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-
-            wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
-
-            // Beschreibung
-            wxTextCtrl* textCtrl = new wxTextCtrl(
-                dlg, wxID_ANY, note.description, wxDefaultPosition,
-                wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
-            sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 10);
-
-            // Buttons
-            wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
-
-            wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
-            centerBtn->Bind(wxEVT_BUTTON,
-                [this, &note, canvasIndex, dlg](wxCommandEvent&) {
-                    wxWindow* canvas = GetCanvasByIndex(canvasIndex);
-                    double scale = 0.0;
-                    if (canvas) {
-                        scale = m_parent->m_canvasStates[canvasIndex]
-                                    .viewPort.view_scale_ppm;
-                    }
-                    dlg->EndModal(wxID_OK);
-                    if (canvas) {
-                        CanvasJumpToPosition(canvas, note.latitude, note.longitude, scale);
-                    }
-                });
-            btnSizer->Add(centerBtn, 0, wxALL, 5);
-
-            btnSizer->AddStretchSpacer();
-
-            wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
-            btnSizer->Add(okBtn, 0, wxALL, 5);
-
-            sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
-
-            dlg->SetSizer(sizer);
-            dlg->ShowModal();
-            dlg->Destroy();
-
-            FinishAndReleaseMouse();
-            return;
+        dlg->EndModal(wxID_OK);
+        if (canvas) {
+          CanvasJumpToPosition(canvas, note.latitude, note.longitude, scale);
         }
+      });
+      btnSizer->Add(centerBtn, 0, wxALL, 5);
+
+      btnSizer->AddStretchSpacer();
+
+      wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
+      btnSizer->Add(okBtn, 0, wxALL, 5);
+
+      sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
+
+      dlg->SetSizer(sizer);
+      dlg->ShowModal();
+      dlg->Destroy();
+
+      FinishAndReleaseMouse();
+      return;
     }
+  }
 
-    // ============================================================
-    // 2. Normale Notes
-    // ============================================================
-    SignalKNote* note = GetNoteByGUID(state, guid);
-    if (!note) {
-        SKN_LOG(m_parent, "Note with guid='%s' not found!", guid);
-        FinishAndReleaseMouse();
-        return;
-    }
+  // ============================================================
+  // 2. Normale Notes
+  // ============================================================
+  SignalKNote* note = GetNoteByGUID(state, guid);
+  if (!note) {
+    SKN_LOG(m_parent, "Note with guid='%s' not found!", guid);
+    FinishAndReleaseMouse();
+    return;
+  }
 
-    // Details ggf. nachladen
-    if (note->name.IsEmpty() || note->description.IsEmpty()) {
-        if (!FetchNoteDetails(note->id, *note)) {
-            SKN_LOG(m_parent, "Failed to fetch details for %s", note->id);
-            if (note->name.IsEmpty()) note->name = note->id;
-            if (note->description.IsEmpty())
-                note->description = _("Details could not be loaded.");
+  // Details ggf. nachladen
+  if (note->name.IsEmpty() || note->description.IsEmpty()) {
+    if (!FetchNoteDetails(note->id, *note)) {
+      SKN_LOG(m_parent, "Failed to fetch details for %s", note->id);
+      if (note->name.IsEmpty()) note->name = note->id;
+      if (note->description.IsEmpty())
+        note->description = _("Details could not be loaded.");
 
-            // Fallback-Dialog
-            wxDialog* dlg = new wxDialog(
-                m_parent->GetParentWindow(), wxID_ANY, note->name,
-                wxDefaultPosition, wxSize(500, 400),
-                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+      // Fallback-Dialog
+      wxDialog* dlg = new wxDialog(
+          m_parent->GetParentWindow(), wxID_ANY, note->name, wxDefaultPosition,
+          wxSize(500, 400), wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
 
-            wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+      wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
 
-            wxTextCtrl* textCtrl = new wxTextCtrl(
-                dlg, wxID_ANY, note->description, wxDefaultPosition,
-                wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
-            sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 10);
+      wxTextCtrl* textCtrl = new wxTextCtrl(
+          dlg, wxID_ANY, note->description, wxDefaultPosition, wxDefaultSize,
+          wxTE_MULTILINE | wxTE_READONLY | wxTE_RICH2);
+      sizer->Add(textCtrl, 1, wxALL | wxEXPAND, 10);
 
-            wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+      wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
 
-            wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
-            centerBtn->Bind(wxEVT_BUTTON,
-                [this, note, canvasIndex, dlg](wxCommandEvent&) {
-                    wxWindow* canvas = GetCanvasByIndex(canvasIndex);
-                    double scale = 0.0;
-                    if (canvas) {
-                        scale = m_parent->m_canvasStates[canvasIndex]
-                                    .viewPort.view_scale_ppm;
-                    }
-                    dlg->EndModal(wxID_OK);
-                    if (canvas) {
-                        CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
-                    }
-                });
-            btnSizer->Add(centerBtn, 0, wxALL, 5);
-
-            btnSizer->AddStretchSpacer();
-
-            wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
-            btnSizer->Add(okBtn, 0, wxALL, 5);
-
-            sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
-
-            dlg->SetSizer(sizer);
-            dlg->ShowModal();
-            dlg->Destroy();
-
-            FinishAndReleaseMouse();
-            return;
+      wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+      centerBtn->Bind(wxEVT_BUTTON, [this, note, canvasIndex,
+                                     dlg](wxCommandEvent&) {
+        wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+        double scale = 0.0;
+        if (canvas) {
+          scale = m_parent->m_canvasStates[canvasIndex].viewPort.view_scale_ppm;
         }
-    }
-
-    // ============================================================
-    // 3. Vollständiger HTML-Dialog
-    // ============================================================
-    SKN_LOG(m_parent, "Found note '%s'", note->name);
-
-    int totalWidth = 0, totalHeight = 0;
-    for (const auto& pair : m_parent->m_canvasStates) {
-        if (pair.second.valid) {
-            totalWidth = std::max(totalWidth, pair.second.viewPort.pix_width);
-            totalHeight = std::max(totalHeight, pair.second.viewPort.pix_height);
+        dlg->EndModal(wxID_OK);
+        if (canvas) {
+          CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
         }
+      });
+      btnSizer->Add(centerBtn, 0, wxALL, 5);
+
+      btnSizer->AddStretchSpacer();
+
+      wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
+      btnSizer->Add(okBtn, 0, wxALL, 5);
+
+      sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
+
+      dlg->SetSizer(sizer);
+      dlg->ShowModal();
+      dlg->Destroy();
+
+      FinishAndReleaseMouse();
+      return;
     }
+  }
 
-    int dlgWidth = std::max(400, (int)std::round(totalWidth * 0.67));
-    int dlgHeight = std::max(300, (int)std::round(totalHeight * 0.67));
+  // ============================================================
+  // 3. Vollständiger HTML-Dialog
+  // ============================================================
+  SKN_LOG(m_parent, "Found note '%s'", note->name);
 
-    wxDialog* dlg = new wxDialog(
-        m_parent->GetParentWindow(), wxID_ANY, _("SignalK Note Details"),
-        wxDefaultPosition, wxSize(dlgWidth, dlgHeight),
-        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
-    dlg->CenterOnScreen();
+  int totalWidth = 0, totalHeight = 0;
+  for (const auto& pair : m_parent->m_canvasStates) {
+    if (pair.second.valid) {
+      totalWidth = std::max(totalWidth, pair.second.viewPort.pix_width);
+      totalHeight = std::max(totalHeight, pair.second.viewPort.pix_height);
+    }
+  }
 
-    wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+  int dlgWidth = std::max(400, (int)std::round(totalWidth * 0.67));
+  int dlgHeight = std::max(300, (int)std::round(totalHeight * 0.67));
 
-    wxStaticText* title = new wxStaticText(dlg, wxID_ANY, note->name);
-    wxFont font = title->GetFont();
-    font.SetPointSize(font.GetPointSize() + 2);
-    font.SetWeight(wxFONTWEIGHT_BOLD);
-    title->SetFont(font);
-    sizer->Add(title, 0, wxALL | wxEXPAND, 10);
+  wxDialog* dlg = new wxDialog(m_parent->GetParentWindow(), wxID_ANY,
+                               _("SignalK Note Details"), wxDefaultPosition,
+                               wxSize(dlgWidth, dlgHeight),
+                               wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER);
+  dlg->CenterOnScreen();
 
-    wxString htmlContent = PrepareHTMLContent(note->description, note->url);
+  wxBoxSizer* sizer = new wxBoxSizer(wxVERTICAL);
+
+  wxStaticText* title = new wxStaticText(dlg, wxID_ANY, note->name);
+  wxFont font = title->GetFont();
+  font.SetPointSize(font.GetPointSize() + 2);
+  font.SetWeight(wxFONTWEIGHT_BOLD);
+  title->SetFont(font);
+  sizer->Add(title, 0, wxALL | wxEXPAND, 10);
+
+  wxString htmlContent = PrepareHTMLContent(note->description, note->url);
 
 #if defined(__WXMSW__) || defined(__WXMAC__)
-    if (!RenderWithWebView(dlg, sizer, htmlContent))
-        RenderWithHtmlWindow(dlg, sizer, htmlContent);
-#elif defined(__OCPN__ANDROID__)
+  if (!RenderWithWebView(dlg, sizer, htmlContent))
     RenderWithHtmlWindow(dlg, sizer, htmlContent);
+#elif defined(__OCPN__ANDROID__)
+  RenderWithHtmlWindow(dlg, sizer, htmlContent);
 #else
-    if (!RenderWithWebView(dlg, sizer, htmlContent))
-        RenderWithHtmlWindow(dlg, sizer, htmlContent);
+  if (!RenderWithWebView(dlg, sizer, htmlContent))
+    RenderWithHtmlWindow(dlg, sizer, htmlContent);
 #endif
 
-    wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
+  wxBoxSizer* btnSizer = new wxBoxSizer(wxHORIZONTAL);
 
-    wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
-    centerBtn->Bind(wxEVT_BUTTON,
-        [this, note, canvasIndex, dlg](wxCommandEvent&) {
-            wxWindow* canvas = GetCanvasByIndex(canvasIndex);
-            double scale = 0.0;
-            if (canvas) {
-                scale = m_parent->m_canvasStates[canvasIndex]
-                            .viewPort.view_scale_ppm;
-            }
-            dlg->EndModal(wxID_OK);
-            if (canvas) {
-                CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
-            }
-        });
-    btnSizer->Add(centerBtn, 0, wxALL, 5);
+  wxButton* centerBtn = new wxButton(dlg, wxID_ANY, _("Center on map"));
+  centerBtn->Bind(
+      wxEVT_BUTTON, [this, note, canvasIndex, dlg](wxCommandEvent&) {
+        wxWindow* canvas = GetCanvasByIndex(canvasIndex);
+        double scale = 0.0;
+        if (canvas) {
+          scale = m_parent->m_canvasStates[canvasIndex].viewPort.view_scale_ppm;
+        }
+        dlg->EndModal(wxID_OK);
+        if (canvas) {
+          CanvasJumpToPosition(canvas, note->latitude, note->longitude, scale);
+        }
+      });
+  btnSizer->Add(centerBtn, 0, wxALL, 5);
 
-    btnSizer->AddStretchSpacer();
+  btnSizer->AddStretchSpacer();
 
-    wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
-    btnSizer->Add(okBtn, 0, wxALL, 5);
+  wxButton* okBtn = new wxButton(dlg, wxID_OK, _("OK"));
+  btnSizer->Add(okBtn, 0, wxALL, 5);
 
-    sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
+  sizer->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
 
-    dlg->SetSizer(sizer);
-    dlg->ShowModal();
-    dlg->Destroy();
+  dlg->SetSizer(sizer);
+  dlg->ShowModal();
+  dlg->Destroy();
 
-    FinishAndReleaseMouse();
+  FinishAndReleaseMouse();
+}
+
+wxString tpSignalKNotesManager::ProcessDataUrls(const wxString& htmlIn) {
+  wxString html = htmlIn;
+
+  wxRegEx reDataSvg("data:image/svg\\+xml;base64,([A-Za-z0-9+/=]+)",
+                    wxRE_EXTENDED | wxRE_ICASE);
+
+  if (!reDataSvg.IsValid()) {
+    SKN_LOG(m_parent, "ProcessDataUrls: Regex invalid");
+    return html;
+  }
+
+  size_t searchPos = 0;
+  int index = 0;
+
+  while (reDataSvg.Matches(html, searchPos)) {
+    wxString fullMatch = reDataSvg.GetMatch(html, 0);
+    wxString base64Part = reDataSvg.GetMatch(html, 1);
+
+    // Base64 → MemoryBuffer
+    wxMemoryBuffer decoded = wxBase64Decode(
+        base64Part.mb_str(wxConvUTF8).data(), base64Part.length());
+
+    if (decoded.GetDataLen() == 0) {
+      SKN_LOG(m_parent, "ProcessDataUrls: Base64 decode failed");
+      searchPos += fullMatch.length();
+      continue;
+    }
+
+    wxString svgXml(static_cast<const char*>(decoded.GetData()), wxConvUTF8,
+                    decoded.GetDataLen());
+
+    // PNG-Pfad erzeugen
+    wxString fileName = wxString::Format("note_svg_%d.png", index++);
+    wxFileName fn(m_parent->m_pluginDataDir, fileName);
+    wxString fullPath = fn.GetFullPath();
+
+    // SVG → PNG
+    SvgRenderer renderer;
+    if (!renderer.FromSvgXmlToPng(svgXml, fullPath, 900, 400)) {
+      SKN_LOG(m_parent, "ProcessDataUrls: SvgRenderer failed");
+      searchPos += fullMatch.length();
+      continue;
+    }
+
+    wxString fileUrl = "file://" + fullPath;
+
+    size_t start = html.find(fullMatch, searchPos);
+    if (start == wxString::npos) {
+      break;
+    }
+    size_t end = start + fullMatch.length();
+
+    html = html.Left(start) + fileUrl + html.Mid(end);
+
+    searchPos = start + fileUrl.length();
+  }
+
+  return html;
 }
 
 // Helper: HTML-Content vorbereiten
@@ -711,7 +770,7 @@ wxString tpSignalKNotesManager::PrepareHTMLContent(const wxString& description,
               << "</small>"
               << "</body></html>";
 
-  return htmlContent;
+  return ProcessDataUrls(htmlContent);
 }
 
 // Helper: Rendering mit wxWebView (Windows, macOS, Linux optional)
@@ -1531,7 +1590,8 @@ void tpSignalKNotesManager::InvalidateIconCache(const wxString& iconName) {
 
 // Ignorierte Standard-Resourceset-Typen
 static const std::set<wxString> s_ignoredResourceSets = {
-    "charts", "routes", "notes", "regions", "infolayers", "groups", "tracks","waypoints"};
+    "charts",     "routes", "notes",  "regions",
+    "infolayers", "groups", "tracks", "waypoints"};
 
 bool tpSignalKNotesManager::FetchAvailableResourceSets(
     std::set<wxString>& outResourceSets) {
@@ -1696,7 +1756,7 @@ int tpSignalKNotesManager::ParseResourceSetJSON(
   // Änderungscheck: Vergleiche mit bisherigen resourceSetNotes
   wxMutexLocker lock(state.notesMutex);
 
-// Alte RS-Notes für dieses resourceSet entfernen - NUR wenn newNotes gefüllt
+  // Alte RS-Notes für dieses resourceSet entfernen - NUR wenn newNotes gefüllt
   // ODER wenn das Resourceset explizit deaktiviert wurde
   std::vector<wxString> toRemove;
   for (auto& kv : state.resourceSetNotes) {
@@ -1748,7 +1808,8 @@ static wxString EncodeResourceSetName(const wxString& name) {
 }
 
 // Prüft ob ein JSON-Root ein "flaches" Resourceset ist (UUID → einzelne Notes)
-// Rückgabe: true wenn mindestens ein Eintrag feature.geometry.type == "Point" hat
+// Rückgabe: true wenn mindestens ein Eintrag feature.geometry.type == "Point"
+// hat
 static bool IsFlatResourceSet(wxJSONValue root) {
   if (!root.IsObject()) return false;
   wxArrayString keys = root.GetMemberNames();
@@ -1770,20 +1831,22 @@ static bool IsFlatResourceSet(wxJSONValue root) {
 
 bool tpSignalKNotesManager::FetchResourceSet(
     const wxString& resourceSetName,
-    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outDiscoveredSubs,
+    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+        outDiscoveredSubs,
     signalk_notes_opencpn_pi::CanvasState& state,
-    const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& configuredSubs)
-{
-  wxString url = wxString::Format("http://%s:%d/signalk/v2/api/resources/%s",
-                                  m_serverHost, m_serverPort,
-                                  EncodeResourceSetName(resourceSetName));
+    const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+        configuredSubs) {
+  wxString url =
+      wxString::Format("http://%s:%d/signalk/v2/api/resources/%s", m_serverHost,
+                       m_serverPort, EncodeResourceSetName(resourceSetName));
   wxString authHeader;
   if (!m_authToken.IsEmpty())
     authHeader = "Authorization: Bearer " + m_authToken;
 
   wxString json = HttpGet(url, authHeader);
   if (json.IsEmpty()) {
-    SKN_LOG(m_parent, "FetchResourceSet: Kein Ergebnis für %s", resourceSetName);
+    SKN_LOG(m_parent, "FetchResourceSet: Kein Ergebnis für %s",
+            resourceSetName);
     return false;
   }
 
@@ -1815,7 +1878,8 @@ bool tpSignalKNotesManager::FetchResourceSet(
     }
   } else {
     // Hierarchisches Resourceset: normale Verarbeitung
-    ParseResourceSetJSON(json, resourceSetName, state, configuredSubs, outDiscoveredSubs);
+    ParseResourceSetJSON(json, resourceSetName, state, configuredSubs,
+                         outDiscoveredSubs);
   }
 
   return true;
@@ -1823,11 +1887,11 @@ bool tpSignalKNotesManager::FetchResourceSet(
 
 bool tpSignalKNotesManager::DiscoverSubResourceSets(
     const wxString& resourceSetName,
-    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outSubs)
-{
-  wxString url = wxString::Format("http://%s:%d/signalk/v2/api/resources/%s",
-                                  m_serverHost, m_serverPort,
-                                  EncodeResourceSetName(resourceSetName));
+    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+        outSubs) {
+  wxString url =
+      wxString::Format("http://%s:%d/signalk/v2/api/resources/%s", m_serverHost,
+                       m_serverPort, EncodeResourceSetName(resourceSetName));
   wxString authHeader;
   if (!m_authToken.IsEmpty())
     authHeader = "Authorization: Bearer " + m_authToken;
@@ -1867,11 +1931,9 @@ bool tpSignalKNotesManager::DiscoverSubResourceSets(
 }
 
 int tpSignalKNotesManager::ParseFlatResourceSetJSON(
-    const wxString& json,
-    const wxString& resourceSetName,
+    const wxString& json, const wxString& resourceSetName,
     signalk_notes_opencpn_pi::CanvasState& state,
-    const signalk_notes_opencpn_pi::SubResourceSetConfig& config)
-{
+    const signalk_notes_opencpn_pi::SubResourceSetConfig& config) {
   wxJSONReader reader;
   wxJSONValue root;
   if (reader.Parse(json, &root) != 0) return 0;
@@ -1896,12 +1958,13 @@ int tpSignalKNotesManager::ParseFlatResourceSetJSON(
     double lat = coords[1].AsDouble();
 
     wxJSONValue props = feat["properties"];
-    wxString name = props.HasMember("name") ? props["name"].AsString()
-                  : entry.HasMember("name") ? entry["name"].AsString()
-                  : _("Unknown");
-    wxString desc = entry.HasMember("description") ? entry["description"].AsString()
-                  : props.HasMember("description") ? props["description"].AsString()
-                  : wxString("");
+    wxString name = props.HasMember("name")   ? props["name"].AsString()
+                    : entry.HasMember("name") ? entry["name"].AsString()
+                                              : _("Unknown");
+    wxString desc =
+        entry.HasMember("description")   ? entry["description"].AsString()
+        : props.HasMember("description") ? props["description"].AsString()
+                                         : wxString("");
 
     wxString guid = wxString::Format("RSF_%s_%s", resourceSetName, uuids[i]);
 
@@ -1913,7 +1976,8 @@ int tpSignalKNotesManager::ParseFlatResourceSetJSON(
     note.latitude = lat;
     note.longitude = lon;
     note.iconName = config.iconName;
-    note.source = wxString::Format("resourceset:%s:%s", resourceSetName, resourceSetName);
+    note.source =
+        wxString::Format("resourceset:%s:%s", resourceSetName, resourceSetName);
     note.isDisplayed = true;
 
     newNotes[guid] = note;
@@ -1924,17 +1988,17 @@ int tpSignalKNotesManager::ParseFlatResourceSetJSON(
 
   std::vector<wxString> toRemove;
   for (auto& kv : state.resourceSetNotes) {
-    if (kv.second.source == wxString::Format("resourceset:%s:%s",
-                                              resourceSetName, resourceSetName))
+    if (kv.second.source ==
+        wxString::Format("resourceset:%s:%s", resourceSetName, resourceSetName))
       toRemove.push_back(kv.first);
   }
 
-// Nur löschen+ersetzen wenn tatsächlich Daten geladen wurden
+  // Nur löschen+ersetzen wenn tatsächlich Daten geladen wurden
   if (!newNotes.empty()) {
     for (auto& guid : toRemove) state.resourceSetNotes.erase(guid);
     for (auto& kv : newNotes) state.resourceSetNotes[kv.first] = kv.second;
   }
-  
+
   SKN_LOG(m_parent, "ParseFlatResourceSetJSON: %s → %d Notes", resourceSetName,
           (int)newNotes.size());
   return (int)newNotes.size();

@@ -3,8 +3,10 @@ src/signalk_notes_opencpn_pi.cpp
 src/tpSignalKNotes.cpp
 src/tpConfigDialog.cpp
 src/android_uuid.cpp
+src/svgRenderer.cpp
 include/signalk_notes_opencpn_pi.h
 include/tpicons.h
 include/tpSignalKNotes.h
 include/tpConfigDialog.h
 include/android_uuid.h
+include/svgRenderer.h

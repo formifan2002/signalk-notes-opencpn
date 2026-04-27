@@ -31,7 +31,6 @@
 // Forward declaration
 class signalk_notes_opencpn_pi;
 
-
 class SignalKNote {
 public:
   wxString id;
@@ -52,7 +51,7 @@ class tpSignalKNotesManager {
 public:
   tpSignalKNotesManager(signalk_notes_opencpn_pi* parent);
   ~tpSignalKNotesManager() = default;  // Default-Destruktor
-  
+
   // Server settings
   wxString GetServerHost() const { return m_serverHost; }
   int GetServerPort() const { return m_serverPort; }
@@ -60,14 +59,18 @@ public:
 
   // Notes
   void UpdateDisplayedIcons(double centerLat, double centerLon,
-                            double maxDistance, signalk_notes_opencpn_pi::CanvasState& state);
+                            double maxDistance,
+                            signalk_notes_opencpn_pi::CanvasState& state);
 
-  SignalKNote* GetNoteByGUID(signalk_notes_opencpn_pi::CanvasState& state, const wxString& guid);
-  void GetVisibleNotes(signalk_notes_opencpn_pi::CanvasState& state,std::vector<const SignalKNote*>& outNotes);
+  SignalKNote* GetNoteByGUID(signalk_notes_opencpn_pi::CanvasState& state,
+                             const wxString& guid);
+  void GetVisibleNotes(signalk_notes_opencpn_pi::CanvasState& state,
+                       std::vector<const SignalKNote*>& outNotes);
   bool GetIconBitmapForNote(const SignalKNote& note, wxBitmap& bmp, bool forGL);
 
-
-  void OnIconClick(const wxString& guid, signalk_notes_opencpn_pi::CanvasState& state, int canvasIndex);
+  void OnIconClick(const wxString& guid,
+                   signalk_notes_opencpn_pi::CanvasState& state,
+                   int canvasIndex);
   void InvalidateIconCache(const wxString& iconName);
 
   // Provider & Icon mappings
@@ -124,23 +127,31 @@ public:
   wxDateTime GetAuthTokenReceivedTime() const {
     return m_authTokenReceivedTime;
   }
-// Resourceset-Unterstützung
-bool FetchAvailableResourceSets(std::set<wxString>& outResourceSets);
-bool FetchResourceSet(const wxString& resourceSetName,
-                      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& subConfigs,
-                      signalk_notes_opencpn_pi::CanvasState& state,
-                      const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& configuredSubs);
-bool DiscoverSubResourceSets(const wxString& resourceSetName,
-    std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outSubs);
-// private:
-int ParseFlatResourceSetJSON(const wxString& json,
-                             const wxString& resourceSetName,
-                             signalk_notes_opencpn_pi::CanvasState& state,
-                             const signalk_notes_opencpn_pi::SubResourceSetConfig& config);    
+  // Resourceset-Unterstützung
+  bool FetchAvailableResourceSets(std::set<wxString>& outResourceSets);
+  bool FetchResourceSet(
+      const wxString& resourceSetName,
+      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+          subConfigs,
+      signalk_notes_opencpn_pi::CanvasState& state,
+      const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+          configuredSubs);
+  bool DiscoverSubResourceSets(
+      const wxString& resourceSetName,
+      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+          outSubs);
+  // private:
+  int ParseFlatResourceSetJSON(
+      const wxString& json, const wxString& resourceSetName,
+      signalk_notes_opencpn_pi::CanvasState& state,
+      const signalk_notes_opencpn_pi::SubResourceSetConfig& config);
+
 private:
   signalk_notes_opencpn_pi* m_parent = nullptr;
 
-  int FetchNotesListForCanvas(double centerLat, double centerLon, double maxDistance, signalk_notes_opencpn_pi::CanvasState& state);
+  int FetchNotesListForCanvas(double centerLat, double centerLon,
+                              double maxDistance,
+                              signalk_notes_opencpn_pi::CanvasState& state);
   bool FetchNoteDetails(const wxString& noteId, SignalKNote& note);
 
   wxString ResolveIconPath(const wxString& skIconName);
@@ -148,7 +159,8 @@ private:
   bool CreateNoteIcon(SignalKNote& note);
   bool DeleteNoteIcon(const wxString& guid);
 
-  int ParseNotesListJSON(const wxString& json, signalk_notes_opencpn_pi::CanvasState& state);
+  int ParseNotesListJSON(const wxString& json,
+                         signalk_notes_opencpn_pi::CanvasState& state);
   bool ParseNoteDetailsJSON(const wxString& json, SignalKNote& note);
 
   // Server data
@@ -170,7 +182,7 @@ private:
   std::map<wxString, wxBitmap> m_iconCache;
 
   std::map<wxString, bool> m_providerSettings;
-  std::map<wxString, wxString> m_iconMappings;     // iconName -> filePath
+  std::map<wxString, wxString> m_iconMappings;  // iconName -> filePath
 
   std::set<wxString> m_discoveredProviders;
   std::set<wxString> m_discoveredIcons;
@@ -185,16 +197,20 @@ private:
 
   // Helper-Methoden für Note-Details Dialog
   wxString PrepareHTMLContent(const wxString& description, const wxString& url);
+  wxString ProcessDataUrls(const wxString& htmlIn);
+
   bool RenderWithWebView(wxDialog* dlg, wxBoxSizer* sizer,
                          const wxString& htmlContent);
   void RenderWithHtmlWindow(wxDialog* dlg, wxBoxSizer* sizer,
                             const wxString& htmlContent);
   wxString FixBrokenLinksInDescription(const wxString& html);
-  bool IsValidResourceSet(wxJSONValue rsJson); 
-  int ParseResourceSetJSON(const wxString& json,
-                          const wxString& resourceSetName,
-                          signalk_notes_opencpn_pi::CanvasState& state,
-                          const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& configuredSubs,
-                          std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>& outDiscoveredSubs);
+  bool IsValidResourceSet(wxJSONValue rsJson);
+  int ParseResourceSetJSON(
+      const wxString& json, const wxString& resourceSetName,
+      signalk_notes_opencpn_pi::CanvasState& state,
+      const std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+          configuredSubs,
+      std::map<wxString, signalk_notes_opencpn_pi::SubResourceSetConfig>&
+          outDiscoveredSubs);
 };
 #endif  // _TPSIGNALKNOTES_H_

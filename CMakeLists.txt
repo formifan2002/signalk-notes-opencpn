@@ -200,6 +200,7 @@ set(HDRS
     include/tpSignalKNotes.h
     include/tpConfigDialog.h
     include/android_uuid.h
+    include/nanosvg.h
     include/svgRenderer.h
 )
 

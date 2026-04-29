@@ -147,5 +147,9 @@ private:
                      const wxAffineMatrix2D& parentTransform);
 
   void ApplyStyle(wxGraphicsContext* gc, const SvgStyle& style, bool forStroke);
+#else
+  // Android: NanoSVG für SVG→Image Konvertierung
+  bool RenderToImageNanoSVG(const wxString& svgXml, wxImage& outImage,
+                            int targetWidth, int targetHeight);
 #endif
 };

@@ -1,7 +1,10 @@
 ﻿#include "svgRenderer.h"
+
+// Nur diese Includes auf Android - ocpn_plugin.h bringt dcmemory.h mit
 #ifndef __OCPN__ANDROID__
   #include "signalk_notes_opencpn_pi.h"
 #endif
+
 #include <wx/tokenzr.h>
 #include <wx/regex.h>
 #include <wx/log.h>
@@ -90,10 +93,36 @@ bool SvgRenderer::RenderToPng(const SvgDocument& doc,
                               int targetHeight)
 {
 #ifdef __OCPN__ANDROID__
-  // Android: wxGraphicsContext nicht verfügbar
-  return false;
+  // Android: Nutze NanoSVG statt wxGraphicsContext
+  wxLogMessage("RenderToPng: Android - using NanoSVG");
+  
+  // Rekonstruiere SVG-XML aus Document (vereinfacht)
+  // In Produktionscode: vollständige SVG-Rekonstruktion
+  wxString svgXml = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 100 100\"></svg>";
+  
+  wxImage img;
+  if (!RenderToImageNanoSVG(svgXml, img, targetWidth, targetHeight)) {
+    wxLogWarning("RenderToPng: NanoSVG rendering failed");
+    return false;
+  }
+  
+  if (!img.SaveFile(outputPath, wxBITMAP_TYPE_PNG)) {
+    wxLogWarning("RenderToPng: Failed to save PNG '%s'", outputPath);
+    return false;
+  }
+  
+  wxLogMessage("RenderToPng: PNG saved via NanoSVG");
+  return true;
 #else
-  // Desktop: Verwende wxGraphicsContext zum Rendern
+  // Desktop: wxGraphicsContext
+  wxLogMessage("=== RenderToPng START ===");
+  wxLogMessage("targetWidth=%d targetHeight=%d", targetWidth, targetHeight);
+  wxLogMessage("SVG viewBox: x=%f y=%f w=%f h=%f",
+               doc.viewBoxX, doc.viewBoxY,
+               doc.viewBoxWidth, doc.viewBoxHeight);
+  wxLogMessage("SVG pixel size: widthPx=%d heightPx=%d",
+               doc.widthPx, doc.heightPx);
+
   int w = 0;
   int h = 0;
 
@@ -102,6 +131,7 @@ bool SvgRenderer::RenderToPng(const SvgDocument& doc,
       (doc.viewBoxWidth <= 0 || doc.viewBoxHeight <= 0)) {
     w = targetWidth;
     h = targetHeight;
+    wxLogMessage("Using explicit target size (no viewBox): %d x %d", w, h);
   }
   // 2) Wenn viewBox vorhanden → Größe aus viewBox + Limits ableiten
   else if (doc.viewBoxWidth > 0 && doc.viewBoxHeight > 0) {
@@ -133,17 +163,22 @@ bool SvgRenderer::RenderToPng(const SvgDocument& doc,
 
     w = (int)std::round(fw);
     h = (int)std::round(fh);
+    wxLogMessage("Using viewBox-based size: %d x %d (aspect=%f)", w, h, aspect);
   }
   // 3) Fallback: width/height-Attribute oder Defaults
   else {
     if (doc.widthPx > 0 && doc.heightPx > 0) {
       w = doc.widthPx;
       h = doc.heightPx;
+      wxLogMessage("Using pixel size: %d x %d", w, h);
     } else {
       w = (targetWidth  > 0) ? targetWidth  : 900;
       h = (targetHeight > 0) ? targetHeight : 400;
+      wxLogMessage("Using default size: %d x %d", w, h);
     }
   }
+
+  wxLogMessage("Final render size: %d x %d", w, h);
 
   wxBitmap bmp(w, h);
   wxMemoryDC dc(bmp);
@@ -165,6 +200,9 @@ bool SvgRenderer::RenderToPng(const SvgDocument& doc,
     const double tx = (w / s - doc.viewBoxWidth) * 0.5;
     const double ty = (h / s - doc.viewBoxHeight) * 0.5;
 
+    wxLogMessage("Applying scale: sx=%f sy=%f (iso=%f), translate=%f,%f",
+                 sx, sy, s, tx, ty);
+
     gc->Scale(s, s);
     gc->Translate(-doc.viewBoxX + tx, -doc.viewBoxY + ty);
   }
@@ -172,6 +210,8 @@ bool SvgRenderer::RenderToPng(const SvgDocument& doc,
   wxAffineMatrix2D identity;
   if (doc.root) {
     RenderElement(gc.get(), *doc.root, doc, identity);
+  } else {
+    wxLogWarning("SvgRenderer::RenderToPng: doc.root is NULL");
   }
 
   wxImage img = bmp.ConvertToImage();
@@ -180,6 +220,8 @@ bool SvgRenderer::RenderToPng(const SvgDocument& doc,
     return false;
   }
 
+  wxLogMessage("PNG save: OK");
+  wxLogMessage("=== RenderToPng END ===");
   return true;
 #endif
 }
@@ -719,6 +761,10 @@ wxColour SvgRenderer::ParseColour(const wxString& s, bool& ok) {
     }
   }
 
+  if (v.StartsWith("rgb(") || v.StartsWith("rgba(")) {
+    wxLogWarning("SvgRenderer::ParseColour: parsing rgb/rgba color '%s'", v);
+  }
+
   wxColour c(v);
   if (c.IsOk()) {
     ok = true;
@@ -1007,6 +1053,8 @@ void SvgRenderer::ApplyStyle(wxGraphicsContext* gc, const SvgStyle& style,
 void SvgRenderer::RenderElement(wxGraphicsContext* gc, const SvgElement& el,
                                 const SvgDocument& doc,
                                 const wxAffineMatrix2D& parentTransform) {
+  wxLogMessage("RenderElement: type=%d", (int)el.type);
+
   wxAffineMatrix2D m = parentTransform;
   m.Concat(el.transform.matrix);
 
@@ -1014,7 +1062,33 @@ void SvgRenderer::RenderElement(wxGraphicsContext* gc, const SvgElement& el,
   wxPoint2DDouble tr;
   m.Get(&mat, &tr);
 
+  wxLogMessage("  Transform: [%f %f; %f %f] + [%f %f]", mat.m_11, mat.m_12,
+               mat.m_21, mat.m_22, tr.m_x, tr.m_y);
+
   gc->PushState();
+
+  switch (el.type) {
+    case SvgElementType::TEXT:
+      wxLogMessage("  TEXT: '%s' at (%f, %f) fontSize=%f", el.text, el.tx,
+                   el.ty, el.style.fontSize);
+      break;
+
+    case SvgElementType::RECT:
+      wxLogMessage("  RECT: x=%f y=%f w=%f h=%f", el.x, el.y, el.width,
+                   el.height);
+      break;
+
+    case SvgElementType::LINE:
+      wxLogMessage("  LINE: (%f,%f) -> (%f,%f)", el.x1, el.y1, el.x2, el.y2);
+      break;
+
+    case SvgElementType::PATH:
+      wxLogMessage("  PATH: %zu points", el.points.size());
+      break;
+
+    default:
+      break;
+  }
 
   switch (el.type) {
     case SvgElementType::GROUP: {
@@ -1154,4 +1228,83 @@ void SvgRenderer::RenderElement(wxGraphicsContext* gc, const SvgElement& el,
 
   gc->PopState();
 }
+#endif
+
+// ---------------------------------------------------------
+// Android: NanoSVG Rendering
+// ---------------------------------------------------------
+#ifdef __OCPN__ANDROID__
+
+#define NANOSVG_IMPLEMENTATION
+#include "nanosvg.h"
+
+bool SvgRenderer::RenderToImageNanoSVG(const wxString& svgXml, wxImage& outImage,
+                                       int targetWidth, int targetHeight) {
+  wxLogMessage("RenderToImageNanoSVG: START");
+  
+  // Standard-Größen falls nicht angegeben
+  if (targetWidth <= 0) targetWidth = 900;
+  if (targetHeight <= 0) targetHeight = 400;
+  
+  // Konvertiere wxString zu C-String
+  wxCharBuffer buf = svgXml.ToUTF8();
+  const char* svgStr = buf.data();
+  
+  // Parse SVG
+  NSVGimage* image = nsvgParse((char*)svgStr, "px", 96.0f);
+  if (!image) {
+    wxLogWarning("RenderToImageNanoSVG: nsvgParse failed");
+    return false;
+  }
+  
+  // Berechne Skalierung
+  float scale = 1.0f;
+  if (image->width > 0 && image->height > 0) {
+    float scaleX = (float)targetWidth / image->width;
+    float scaleY = (float)targetHeight / image->height;
+    scale = (scaleX < scaleY) ? scaleX : scaleY;
+  }
+  
+  int w = (int)(image->width * scale);
+  int h = (int)(image->height * scale);
+  
+  if (w <= 0 || h <= 0) {
+    nsvgDelete(image);
+    wxLogWarning("RenderToImageNanoSVG: Invalid dimensions");
+    return false;
+  }
+  
+  // Erstelle Rasterizer
+  NSVGrasterizer* rast = nsvgCreateRasterizer();
+  if (!rast) {
+    nsvgDelete(image);
+    wxLogWarning("RenderToImageNanoSVG: nsvgCreateRasterizer failed");
+    return false;
+  }
+  
+  // Allokiere Bitmap (RGBA)
+  unsigned char* bitmap = new unsigned char[w * h * 4];
+  
+  // Rasterisiere
+  nsvgRasterize(rast, image, 0, 0, scale, bitmap, w, h, w * 4);
+  
+  // Konvertiere zu wxImage (RGB, ignoriere Alpha)
+  unsigned char* rgbData = new unsigned char[w * h * 3];
+  for (int i = 0; i < w * h; i++) {
+    rgbData[i * 3 + 0] = bitmap[i * 4 + 0];  // R
+    rgbData[i * 3 + 1] = bitmap[i * 4 + 1];  // G
+    rgbData[i * 3 + 2] = bitmap[i * 4 + 2];  // B
+  }
+  
+  outImage = wxImage(w, h, rgbData);
+  
+  // Cleanup
+  delete[] bitmap;
+  nsvgDeleteRasterizer(rast);
+  nsvgDelete(image);
+  
+  wxLogMessage("RenderToImageNanoSVG: SUCCESS (%dx%d)", w, h);
+  return true;
+}
+
 #endif

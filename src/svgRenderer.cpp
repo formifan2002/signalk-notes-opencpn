@@ -1,8 +1,9 @@
 ﻿#include "svgRenderer.h"
 
-// Nur diese Includes auf Android - ocpn_plugin.h bringt dcmemory.h mit
-#ifndef __OCPN__ANDROID__
-  #include "signalk_notes_opencpn_pi.h"
+// Nur auf Android: NanoSVG Library
+#ifdef __OCPN__ANDROID__
+  #define NANOSVG_IMPLEMENTATION
+  #include "nanosvg.h"
 #endif
 
 #include <wx/tokenzr.h>
@@ -1227,9 +1228,6 @@ void SvgRenderer::RenderElement(wxGraphicsContext* gc, const SvgElement& el,
 // Android: NanoSVG Rendering
 // ---------------------------------------------------------
 #ifdef __OCPN__ANDROID__
-
-#define NANOSVG_IMPLEMENTATION
-#include <nanosvg.h>
 
 bool SvgRenderer::RenderToImageNanoSVG(const wxString& svgXml, wxImage& outImage,
                                        int targetWidth, int targetHeight) {

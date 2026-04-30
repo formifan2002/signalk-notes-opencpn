@@ -255,7 +255,6 @@ set(SRC ${SRCS} ${HDRS})
 # =============================================================
 
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/include)
-target_include_directories(${PACKAGE_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include)
 include_directories(BEFORE ${PROJECT_SOURCE_DIR}/ocpninclude)
 # Change target_sources to match your project needs.
 # ==============================================================

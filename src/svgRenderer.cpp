@@ -2,8 +2,9 @@
 
 // Nur auf Android: NanoSVG Library
 #ifdef __OCPN__ANDROID__
+  #warning "NanoSVG included!"
   #define NANOSVG_IMPLEMENTATION
-  #include "nanosvg.h"
+  #include <nanosvg.h>
 #endif
 
 #include <wx/tokenzr.h>

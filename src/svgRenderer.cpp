@@ -1229,7 +1229,7 @@ void SvgRenderer::RenderElement(wxGraphicsContext* gc, const SvgElement& el,
 #ifdef __OCPN__ANDROID__
 
 #define NANOSVG_IMPLEMENTATION
-#include "nanosvg.h"
+#include "../include/nanosvg.h"
 
 bool SvgRenderer::RenderToImageNanoSVG(const wxString& svgXml, wxImage& outImage,
                                        int targetWidth, int targetHeight) {
